@@ -1,0 +1,4 @@
+A = B OR C
+B = A AND NOT C
+C = A XOR D
+D = B OR C

@@ -28,19 +28,35 @@ def update_state(state, boolean_network):
     updated_state = list(state)
     for node in boolean_network:
         function = boolean_network[node]
-        dependencies = [dep.strip() for dep in function.split('AND') + function.split('OR') + function.split('XOR')]
-        inputs = [state[list(boolean_network.keys()).index(dep)] for dep in dependencies]
+        terms = function.split()
+        inputs = []
+        for term in terms:
+            if term in ('AND', 'OR', 'XOR', 'NOT'):
+                continue
+            input_node = term.strip('()')
+            input_value = state[list(boolean_network.keys()).index(input_node)]
+            inputs.append(input_value)
         updated_state[list(boolean_network.keys()).index(node)] = evaluate_function(function, inputs)
     return tuple(updated_state)
 
 def evaluate_function(function, inputs):
-    expression = function
-    for i in range(len(inputs)):
-        expression = expression.replace(str(i), str(inputs[i]))
-    return eval(expression)
+    result = inputs[0]
+    index = 1
+    while index < len(inputs):
+        operator = function.split()[index - 1]
+        if operator == 'AND':
+            result = result and inputs[index]
+        elif operator == 'OR':
+            result = result or inputs[index]
+        elif operator == 'XOR':
+            result = result ^ inputs[index]
+        elif operator == 'NOT':
+            result = not inputs[index]
+        index += 1
+    return result
 
 # Example usage
-file_path = 'boolean_network_ex.txt'  # Path to the input file
+file_path = 'boolean_network.txt'  # Path to the input file
 time_steps = 5  # Number of time steps to simulate
 
 boolean_network = read_boolean_network(file_path)

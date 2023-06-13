@@ -1,20 +1,3 @@
-Write python code to compute the signed directed graph of a given asynchronous Boolean network (ABN). For example, the ABN 
-"x1 = x1 AND x2 AND x3
-x2 = x1 OR NOT x3
-x3 = (x2 AND NOT x3) OR (x1 AND NOT x2 AND NOT x3) OR (x1 AND x2 AND x3)"
-, the corresponding SDG is
-"
-x1 --> x1 (sign: 1)
-x2 --> x1 (sign: 1)
-x3 --> x1 (sign: 1)
-x1 --> x2 (sign: 1)
-x3 --> x2 (sign: -1)
-x1 --> x3 (sign: 1)
-x2 --> x3 (sign: 1)
-x3 --> x3 (sign: -1)
-"
-
-'x3 = (x2 AND NOT x3) OR (x1 AND NOT x2 AND NOT x3) OR (NOT x1 AND x2 AND x3)'
-x1 --> x3 (sign: 0) (one x1, one NOT x1)
-x2 --> x3 (sign: 1) (one x2, two NOT x3)
-x3 --> x3 (sign: -1) (two NOT x3)
+x1 = x1 & x2 & x3
+x2 = x1 | ~x3
+x3 = (x2 & ~x3) | (x1 & ~x2 & ~x3) | (x1 & x2 & x3)

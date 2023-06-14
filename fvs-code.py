@@ -1,44 +1,40 @@
-def read_boolean_network(file_path):
-    boolean_network = {}
-    with open(file_path, 'r') as file:
-        for line in file:
-            if line.startswith('#') or line.strip() == '':
-                continue
-            node, function = line.strip().split('=')
-            boolean_network[node.strip()] = function.strip()
-    return boolean_network
+import networkx as nx
+from networkx.algorithms.cycles import find_cycle
 
-def compute_fvs(boolean_network):
+def compute_fvs(sdg):
     fvs = set()
-    for node in boolean_network:
-        modified_network = boolean_network.copy()
-        del modified_network[node]
-        if not has_feedback_loop(modified_network):
-            fvs.add(node)
+    cycles = list(nx.simple_cycles(sdg))
+    
+    while cycles:
+        cycle = cycles[0]
+        fvs.update(cycle)
+        sdg.remove_nodes_from(cycle)
+        cycles = list(nx.simple_cycles(sdg))
+    
     return fvs
 
-def has_feedback_loop(boolean_network):
-    for node in boolean_network:
-        if evaluate_node(node, boolean_network, set()):
-            return True
-    return False
+# Example SDG
+signed_directed_graph = nx.DiGraph()
 
-def evaluate_node(node, boolean_network, visited):
-    if node in visited:
-        return True
-    visited.add(node)
-    function = boolean_network[node]
-    dependencies = [dep.strip() for dep in function.split('AND') + function.split('OR') + function.split('XOR')]
-    for dep in dependencies:
-        if dep not in boolean_network:
-            continue
-        if evaluate_node(dep, boolean_network, visited):
-            return True
-    visited.remove(node)
-    return False
+# Add nodes to the SDG
+signed_directed_graph.add_nodes_from(['x1', 'x2', 'x3'])
 
-# Example usage
-file_path = 'CAC.txt'  # Path to the input file
-boolean_network = read_boolean_network(file_path)
-fvs = compute_fvs(boolean_network)
+# Add edges with signs to the SDG
+signed_directed_graph.add_edge('x1', 'x1', sign=1)
+signed_directed_graph.add_edge('x1', 'x2', sign=1)
+signed_directed_graph.add_edge('x1', 'x3', sign=1)
+signed_directed_graph.add_edge('x2', 'x1', sign=1)
+signed_directed_graph.add_edge('x2', 'x3', sign=1)
+signed_directed_graph.add_edge('x3', 'x1', sign=1)
+signed_directed_graph.add_edge('x3', 'x2', sign=-1)
+signed_directed_graph.add_edge('x3', 'x3', sign=-1)
+#-----------------
+# signed_directed_graph.add_edge('x2', 'x1', sign=1)
+# signed_directed_graph.add_edge('x3', 'x1', sign=1)
+# signed_directed_graph.add_edge('x1', 'x2', sign=1)
+# signed_directed_graph.add_edge('x2', 'x2', sign=-1)
+# signed_directed_graph.add_edge('x1', 'x3', sign=1)
+
+# Compute FVS
+fvs = compute_fvs(signed_directed_graph)
 print("Feedback Vertex Set:", fvs)

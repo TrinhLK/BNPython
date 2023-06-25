@@ -1,50 +1,49 @@
-from pyeda.boolalg.bdd import expr2bdd, exprvar
+from pyeda.inter import *
+import re
 import networkx as nx
 
-# Define the Boolean network equations
-boolean_network = [
-    exprvar('x1') & exprvar('x2') & exprvar('x3'),
-    exprvar('x1') | ~exprvar('x3'),
-    (exprvar('x2') & ~exprvar('x3')) | (exprvar('x1') & ~exprvar('x2') & ~exprvar('x3')) | (exprvar('x1') & exprvar('x2') & exprvar('x3'))
-]
+# Read the input file
+# with open("input.txt", "r") as file:
+def read_input(file_name):
+    with open(file_name, "r") as file:
+        lines = file.readlines()
 
-# Create an empty nx.DiGraph object for the SDG
-sdg = nx.DiGraph()
+    boolean_network = {}
+    for line in lines:
+        if line.startswith("#") or line == "\n" or line.startswith("targets,"):
+            continue
+        lhs, rhs = map(str.strip, line.split(","))
+        rhs = rhs.replace("!", "~")
+        boolean_network[lhs] = rhs
+    return boolean_network
 
-# Create a dictionary to map variables to BDD nodes
-var_to_node = {}
+def compute_signed_directed_graph(boolean_network):
+    signed_directed_graph = nx.DiGraph()
 
-# Iterate over each equation in the Boolean network
-for equation in boolean_network:
-    # Convert the equation to BDD
-    bdd = expr2bdd(equation)
+    for variable, boolean_function in boolean_network.items():
+        if variable not in signed_directed_graph:
+            signed_directed_graph.add_node(variable)
 
-    # Get the input variables of the BDD
-    input_vars = bdd.support
+        fexpr = expr(boolean_function)
+        bdd = expr2bdd(fexpr)
+        fexpr = bdd2expr(bdd)
+        string_fexpr = str(fexpr)
+        for aVar in fexpr.inputs:
+            if str(aVar) not in signed_directed_graph:
+                signed_directed_graph.add_node(str(aVar))
+            count_aVar = string_fexpr.count(str(aVar))
+            count_minusAVar = string_fexpr.count("~"+str(aVar))
+            # print (str(aVar) + "\t" + str(count_aVar - count_minusAVar - count_minusAVar))
+            if (count_aVar - count_minusAVar - count_minusAVar) < 0:
+                signed_directed_graph.add_edge(str(aVar), variable, sign=-1)
+            else:
+                signed_directed_graph.add_edge(str(aVar), variable, sign=1)
+    return signed_directed_graph
 
-    # Iterate over the input variables and add the edges to the SDG
-    for var in input_vars:
-        var_name = var.name
 
-        # Check if the variable has a corresponding BDD node in the dictionary
-        if var_name in var_to_node:
-            node = var_to_node[var_name]
-        else:
-            # Create a new BDD variable for the variable
-            node = var
-            var_to_node[var_name] = node
-
-        # Get the successors of the node
-        successors = bdd.edges(node)
-
-        # Iterate over the successors and add edges to the SDG
-        for successor in successors:
-            successor_var = successor[1]
-
-            # Add an edge to the SDG with the sign based on the polarity of the successor
-            sdg.add_edge(var_name, successor_var.name, sign=1)
-
-# Print the SDG
-for edge in sdg.edges(data=True):
+boolean_network = read_input("boolean_network_1.txt")
+signed_directed_graph = compute_signed_directed_graph(boolean_network)
+print("Signed Directed Graph:")
+for edge in signed_directed_graph.edges(data=True):
     source, target, data = edge
     print(f"{source} --> {target} (sign: {data['sign']})")

@@ -3,7 +3,6 @@ import re
 import networkx as nx
 
 # Read the input file
-# with open("input.txt", "r") as file:
 def read_input(file_name):
     with open(file_name, "r") as file:
         lines = file.readlines()

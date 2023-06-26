@@ -10,7 +10,7 @@ test_list = [1,2,3,4,6,0,32,6,7]
 print (random.choice(test_list))
 
 # Convert an expression to a BDD
-expression = expr2bdd(expr("A & B | C"))
+expression = expr2bdd(expr("A & B & C"))
 
 # Calculate the value of the Boolean function
 satisfying_assignment = expression.satisfy_one()
@@ -49,10 +49,17 @@ def generate_all_states(nodes):
 states = generate_all_states(expression.inputs)
 print ("states: " + str(states))
 
-for assignment in states:
-	bdd_assignment = expression.restrict(assignment)
-	result = int(bdd_assignment)
-	print(f"Assignment: {assignment}, Result: {result}")
+def get_value_of_a_Boolean_function(expression, state):
+    bdd_assignment = expression.restrict(state)
+    result = int(bdd_assignment)
+    print(f"Assignment: {state}, Result: {result}")
+
+get_value_of_a_Boolean_function(expression, states[0])
+# for assignment in states:
+# 	print (str(type(assignment)) + "\t" + str(type(expression)))
+# 	bdd_assignment = expression.restrict(assignment)
+# 	result = int(bdd_assignment)
+# 	print(f"Assignment: {assignment}, Result: {result}")
 	
 def get_full_states_of_chosen_one(expression, all_states):
 	result = []
@@ -75,3 +82,8 @@ print (chosen_states)
 # elm_2 = {"A": 0, "B":1, "C": 1}
 # res = all(elm_2.get(k) == v for k,v in elm.items())
 # print (res)
+list_str = ['A', 'B', 'C']
+list_bddvar = [bddvar(elm) for elm in list_str]
+for elm in list_bddvar:
+	print (type(elm))
+	print (elm)

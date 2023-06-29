@@ -4,9 +4,6 @@ import re
 from random import randint, choice
 import random
 import networkx as nx
-from networkx.algorithms import tournament
-
-
 
 # ------- Read input file
 def read_input(file_name):
@@ -135,6 +132,23 @@ def remove_arcs_from_graph(stg, set_B):
 
     return stg_prime
 
+def is_reachable(G, s1, s2):
+    # Perform BFS starting from s1
+    visited = {s1}
+    queue = [s1]
+    while queue:
+        curr = queue.pop(0)
+        # Check if s2 is visited
+        if curr == s2:
+            return True
+        # Add unvisited successor states to the queue
+        for succ in G.successors(curr):
+            if succ not in visited:
+                visited.add(succ)
+                queue.append(succ)
+    # If s2 is not visited, it is not reachable from s1
+    return False
+
 boolean_network = read_input("arellano_rootstem.bnet")
 
 #  Create {"Node_name":position}
@@ -188,8 +202,8 @@ while len(F) != 0:
     flag = False
     for elm_tt in TT:
         print ("checking: " + str(elm_tt) + " to " + str(s))
-        print ("is_reachable: " + str(tournament.is_reachable(stg, elm_tt, s)))
-        if (tournament.is_reachable(stg, elm_tt, s)):
+        print ("is_reachable: " + str(is_reachable(stg, elm_tt, s)))
+        if (is_reachable(stg, elm_tt, s)):
             flag = True
             # break
     if flag == False:

@@ -1,7 +1,8 @@
 import itertools
 import random
 from pyeda.inter import *
-
+import networkx as nx
+from networkx.algorithms import tournament
 
 text = "0  or  not 0"
 result = int(eval(text))
@@ -87,3 +88,6 @@ list_bddvar = [bddvar(elm) for elm in list_str]
 for elm in list_bddvar:
 	print (type(elm))
 	print (elm)
+
+G = nx.DiGraph([(1, 0), (1, 3), (1, 2), (2, 3), (2, 0), (3, 0)])
+print (tournament.is_reachable(G, 1, 3))

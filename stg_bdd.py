@@ -4,6 +4,8 @@ import re
 from random import randint, choice
 import random
 import networkx as nx
+from networkx.algorithms import tournament
+
 
 
 # ------- Read input file
@@ -159,9 +161,41 @@ stg_prime = remove_arcs_from_graph(stg, set_B)
 print ("stg_prime: " + str(len(stg_prime.edges)))
 
 F = find_fixed_points(stg_prime)
-print (len(F))
+# print (len(F))
 F_fix = find_fixed_points(stg)
-print (len(F_fix))
+# print (len(F_fix))
 F = F - F_fix
 A = F_fix
+TT = A.union(F)
+
+print ("A: ")
+for elm in A:
+    print (elm)
+
+print ("F: ")
+for elm in F:
+    print (elm)
+
+print ("A + F: ")
+for elm in TT:
+    print (elm)
+
 print (len(F))
+while len(F) != 0:
+    s = F.pop()
+    print (len(F))
+    print ("s: " + str(s))
+    flag = False
+    for elm_tt in TT:
+        print ("checking: " + str(elm_tt) + " to " + str(s))
+        print ("is_reachable: " + str(tournament.is_reachable(stg, elm_tt, s)))
+        if (tournament.is_reachable(stg, elm_tt, s)):
+            flag = True
+            # break
+    if flag == False:
+        A.update(s)
+
+print ("A: ")
+for elm in A:
+    print (elm)
+# print (len(F))

@@ -6,7 +6,7 @@ import random
 import networkx as nx
 
 
-# Read input file
+# ------- Read input file
 def read_input(file_name):
     with open(file_name, "r") as file:
         lines = file.readlines()
@@ -20,7 +20,7 @@ def read_input(file_name):
         boolean_network[lhs] = rhs
     return boolean_network
 
-# Compute Signed Directed Graph
+# ------- Compute Signed Directed Graph
 def compute_signed_directed_graph(boolean_network):
     signed_directed_graph = nx.DiGraph()
 
@@ -37,6 +37,7 @@ def compute_signed_directed_graph(boolean_network):
                 signed_directed_graph.add_node(str(aVar))
             count_aVar = string_fexpr.count(str(aVar))
             count_minusAVar = string_fexpr.count("~"+str(aVar))
+
             # print (str(aVar) + "\t" + str(count_aVar - count_minusAVar - count_minusAVar))
             if (count_aVar - count_minusAVar - count_minusAVar) < 0:
                 signed_directed_graph.add_edge(str(aVar), variable, sign=-1)
@@ -107,9 +108,34 @@ def find_vertex_with_maximum_outdegree(sdg, scc):
 
 # END Computing FVS -----------------------------
 
+# ------- Find Fixed Pointes
+def find_fixed_points(stg):
+    not_fp = []
+    for edge in stg.edges:
+        if edge[0] != edge[1]:
+            not_fp.append(edge[0])
+    return set(stg.nodes()) - set(not_fp)
+
+# ------- Remove arcs from a graph
+def remove_arcs_from_graph(stg, set_B):
+    stg_prime = nx.DiGraph()
+    stg_prime.add_edges_from(stg.edges)
+    list_arcs_to_be_removed = []
+
+    for edge in stg_prime.edges():
+        check_str = str(edge[0]) + "\t" + str(edge[1])
+        for elm in list(feedback_vertex_set):
+            if edge[0][dict_boolean_network[elm]] == set_B[dict_boolean_network[elm]] and edge[0][dict_boolean_network[elm]] != edge[1][dict_boolean_network[elm]]:
+                list_arcs_to_be_removed.append(edge)
+
+    for arc in list_arcs_to_be_removed:
+        stg_prime.remove_edge(arc[0], arc[1])
+
+    return stg_prime
+
 boolean_network = read_input("arellano_rootstem.bnet")
 
-# Create {"Node_name":position}
+#  Create {"Node_name":position}
 dict_boolean_network = {}
 for i in range(len(boolean_network.keys())):
     dict_boolean_network[list(boolean_network.keys())[i]] = i
@@ -122,36 +148,20 @@ feedback_vertex_set = compute_feedback_vertex_set(signed_directed_graph)
 # Print the feedback vertex set
 print("Feedback Vertex Set:")
 print(feedback_vertex_set)
+print ("stg: " + str(len(stg.edges)))
 
-stg_prime = stg
-#FVS
-# fvs = {'x1', 'x3'}
 set_B = []
 for i in range(len(list(dict_boolean_network.keys()))):
     x = randint(0,1)
     set_B.append(x)
 
-print("set_B:", str(set_B))
-list_arcs_to_be_removed = []
-for edge in stg.edges():
-    # print (edge[0])
-    check_str = str(edge[0]) + "\t" + str(edge[1])
-    for elm in list(feedback_vertex_set):
-        if edge[0][dict_boolean_network[elm]] == set_B[dict_boolean_network[elm]] and edge[0][dict_boolean_network[elm]] != edge[1][dict_boolean_network[elm]]:
-            list_arcs_to_be_removed.append(edge)
-            check_str += "\t <---"
-            # stg.remove_edge(edge[0], edge[1])
-            print (check_str)
+stg_prime = remove_arcs_from_graph(stg, set_B)
+print ("stg_prime: " + str(len(stg_prime.edges)))
 
-for arc in list_arcs_to_be_removed:
-    stg.remove_edge(arc[0], arc[1])
-
-# print("Edges:", stg.edges())
-# def get_value_of_a_Boolean_function(expression, state):
-#     bdd_assignment = expression.restrict(state)
-#     result = int(bdd_assignment)
-#     print(f"Assignment: {state}, Result: {result}")
-    
-# expression = expr2bdd(expr("x1 & x2 & x3"))
-# states = generate_all_states(expression.inputs)
-# get_value_of_a_Boolean_function(expression,states[0])
+F = find_fixed_points(stg_prime)
+print (len(F))
+F_fix = find_fixed_points(stg)
+print (len(F_fix))
+F = F - F_fix
+A = F_fix
+print (len(F))

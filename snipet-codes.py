@@ -91,3 +91,38 @@ for elm in list_bddvar:
 
 G = nx.DiGraph([(1, 0), (1, 3), (1, 2), (2, 3), (2, 0), (3, 0)])
 print (tournament.is_reachable(G, 1, 3))
+
+# from pyeda.inter import *
+
+def count_satisfying_assignments(fi):
+    fi_bdd = expr2bdd(fi)
+    sols = fi_bdd.satisfy_all()
+    count = 0
+    for elm in sols:
+    	count = count + 1
+    
+    return count
+
+def find_assignment(B):
+    assignment = []
+    
+    for bi in B:
+        fi = bi  # Assume fi is the Boolean function associated with bi
+        
+        ctrue = count_satisfying_assignments(fi)
+        cfalse = 2 ** len(fi.inputs) - ctrue
+        
+        if ctrue > cfalse:
+            assignment.append(1)
+        elif ctrue < cfalse:
+            assignment.append(0)
+        else:
+            assignment.append(random.choice([0, 1]))
+    
+    return tuple(assignment)
+
+# Example usage
+B = exprvars('b', 5)  # Assuming B is a set of 5 Boolean variables
+
+assignment = find_assignment(B)
+print("Assignment:", assignment)

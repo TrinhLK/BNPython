@@ -107,6 +107,37 @@ def find_vertex_with_maximum_outdegree(sdg, scc):
 
 # END Computing FVS -----------------------------
 
+# Compute B
+# -----------------------------
+def count_satisfying_assignments(fi):
+    fi_bdd = expr2bdd(fi)
+    sols = fi_bdd.satisfy_all()
+    count = 0
+    for elm in sols:
+        count = count + 1
+    
+    return count
+
+def find_assignment(B):
+    assignment = []
+    
+    for bi in B:
+        fi = bi  # Assume fi is the Boolean function associated with bi
+        
+        ctrue = count_satisfying_assignments(fi)
+        cfalse = 2 ** len(fi.inputs) - ctrue
+        
+        if ctrue > cfalse:
+            assignment.append(1)
+        elif ctrue < cfalse:
+            assignment.append(0)
+        else:
+            assignment.append(random.choice([0, 1]))
+    
+    return tuple(assignment)
+# END B -----------------------------
+
+
 # ------- Find Fixed Pointes
 def find_fixed_points(stg):
     not_fp = []
@@ -137,10 +168,13 @@ def is_reachable(G, s1, s2):
     # Perform BFS starting from s1
     visited = {s1}
     queue = [s1]
+    path = []
     while queue:
         curr = queue.pop(0)
+        path.append(curr)
         # Check if s2 is visited
         if curr == s2:
+            print ("path: " + str(path))
             return True
         # Add unvisited successor states to the queue
         for succ in G.successors(curr):
@@ -168,10 +202,13 @@ print("Feedback Vertex Set:")
 print(feedback_vertex_set)
 print ("stg: " + str(len(stg.edges)))
 
-set_B = []
-for i in range(len(list(dict_boolean_network.keys()))):
-    x = randint(0,1)
-    set_B.append(x)
+list_var = exprvars('x', len(list(boolean_network.keys())))
+# print ("list_var: " + str(list_var))
+
+set_B = find_assignment(list_var)
+# for i in range(len(list(dict_boolean_network.keys()))):
+#     x = randint(0,1)
+#     set_B.append(x)
 
 stg_prime = remove_arcs_from_graph(stg, set_B)
 print ("stg_prime: " + str(len(stg_prime.edges)))

@@ -29,15 +29,15 @@ def compute_signed_directed_graph(boolean_network):
 
         fexpr = expr(boolean_function)
         bdd = expr2bdd(fexpr)
-        fexpr = bdd2expr(bdd)
+        fexpr = bdd2expr(bdd)       # Convert the expression to BDD
         string_fexpr = str(fexpr)
         for aVar in fexpr.inputs:
             if str(aVar) not in signed_directed_graph:
                 signed_directed_graph.add_node(str(aVar))
             count_aVar = string_fexpr.count(str(aVar))
-            count_minusAVar = string_fexpr.count("~"+str(aVar))
+            count_minusAVar = string_fexpr.count("~"+str(aVar))     # Count minus
 
-            # print (str(aVar) + "\t" + str(count_aVar - count_minusAVar - count_minusAVar))
+            # Calculate the value, if < 0 --> negative
             if (count_aVar - count_minusAVar - count_minusAVar) < 0:
                 signed_directed_graph.add_edge(str(aVar), variable, sign=-1)
             else:
@@ -64,12 +64,12 @@ def compute_stg(boolean_network):
     states = generate_all_states(tuple(list_bddvar))
 
     for node, function in boolean_network.items():
-        expression = expr2bdd(expr(boolean_network[node]))
+        expression = expr2bdd(expr(boolean_network[node]))  # Convert to BDD
         for state in states:
             stg.add_node(tuple(state.values()))
             updated_state = list(state.values())
-            bdd_assignment = expression.restrict(state)
-            updated_state[list(boolean_network.keys()).index(node)] = int(bdd_assignment)
+            bdd_assignment = expression.restrict(state)     # Choose a state using restrict 
+            updated_state[list(boolean_network.keys()).index(node)] = int(bdd_assignment)  # Calculate next state
             stg.add_edge(tuple(state.values()), tuple(updated_state))
 
     return stg
@@ -132,6 +132,7 @@ def remove_arcs_from_graph(stg, set_B):
 
     return stg_prime
 
+# ------- Check whether s2 can be reached from s1
 def is_reachable(G, s1, s2):
     # Perform BFS starting from s1
     visited = {s1}
@@ -149,7 +150,8 @@ def is_reachable(G, s1, s2):
     # If s2 is not visited, it is not reachable from s1
     return False
 
-boolean_network = read_input("arellano_rootstem.bnet")
+# boolean_network = read_input("arellano_rootstem.bnet")
+boolean_network = read_input("boolean_network_1.txt")
 
 #  Create {"Node_name":position}
 dict_boolean_network = {}
@@ -191,25 +193,26 @@ for elm in F:
     print (elm)
 
 print ("A + F: ")
+print (len(TT))
 for elm in TT:
     print (elm)
 
-print (len(F))
+# print (len(F))
 while len(F) != 0:
     s = F.pop()
-    print (len(F))
-    print ("s: " + str(s))
-    flag = False
+    # print (len(F))
+    # print ("s: " + str(s))
+    # flag = False
     for elm_tt in TT:
-        print ("checking: " + str(elm_tt) + " to " + str(s))
-        print ("is_reachable: " + str(is_reachable(stg, elm_tt, s)))
-        if (is_reachable(stg, elm_tt, s)):
-            flag = True
-            # break
-    if flag == False:
-        A.update(s)
+        # print ("checking: " + str(elm_tt) + " to " + str(s))
+        # print ("is_reachable: " + str(is_reachable(stg, elm_tt, s)))
+        if is_reachable(stg, elm_tt, s) == False:
+            # print ("add: " + str(s))
+            # print ("to: " + str(A))
+            A.add(s)        
 
-print ("A: ")
+print ("updated A: ")
+print (len(A))
 for elm in A:
     print (elm)
 # print (len(F))

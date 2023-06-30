@@ -122,7 +122,7 @@ def find_assignment(B):
     assignment = []
     
     for bi in B:
-        fi = bi  # Assume fi is the Boolean function associated with bi
+        fi = bi  # fi is the Boolean function associated with bi
         
         ctrue = count_satisfying_assignments(fi)
         cfalse = 2 ** len(fi.inputs) - ctrue

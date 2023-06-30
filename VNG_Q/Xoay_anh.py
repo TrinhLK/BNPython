@@ -1,22 +1,15 @@
 def rotate_image(image, rotation):
-    rows = len(image)
-    cols = len(image[0])
+    m = len(image)  # m rows
+    n = len(image[0])   # n columns
 
     if rotation == 'P' or rotation == '3T':
-        rotated_image = [[image[rows - j - 1][i] for j in range(rows)] for i in range(cols)]
+        rotated_image = [[image[m - j - 1][i] for j in range(m)] for i in range(n)]
     elif rotation == '2P' or rotation == '2T':
-        rotated_image = [[image[rows - i - 1][cols - j - 1] for j in range(cols)] for i in range(rows)]
+        rotated_image = [[image[m - i - 1][n - j - 1] for j in range(n)] for i in range(m)]
     elif rotation == '3P' or rotation == 'T':
-        rotated_image = [[image[j][cols - i - 1] for j in range(rows)] for i in range(cols)]
-    # elif rotation == 'T':
-    #     rotated_image = [[image[j][cols - i - 1] for j in range(rows)] for i in range(cols)]
-    # elif rotation == '2T':
-    #     rotated_image = [[image[rows - i - 1][cols - j - 1] for j in range(cols)] for i in range(rows)]
-    # elif rotation == '3T':
-    #     rotated_image = [[image[rows - j - 1][i] for j in range(rows)] for i in range(cols)]
+        rotated_image = [[image[j][n - i - 1] for j in range(m)] for i in range(n)]
 
     return rotated_image
-
 
 def main():
     # filename = input("Nhập tên file đầu vào: ")

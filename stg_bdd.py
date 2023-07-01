@@ -1,5 +1,6 @@
 import itertools
 from pyeda.inter import *
+from pyeda.boolalg.bfarray import exprvars
 import re
 from random import randint, choice
 import random
@@ -28,10 +29,33 @@ def compute_signed_directed_graph(boolean_network):
             signed_directed_graph.add_node(variable)
 
         fexpr = expr(boolean_function)
-        bdd = expr2bdd(fexpr)
-        fexpr = bdd2expr(bdd)       # Convert the expression to BDD
+        bdd_expr = expr2bdd(fexpr)
+        fexpr = bdd2expr(bdd_expr)       # Convert the expression to BDD
+        print (fexpr)
         string_fexpr = str(fexpr)
         for aVar in fexpr.inputs:
+            # {aVar:0}
+            print (str(aVar))
+            # vy = bdd_vars[str(aVar)]
+            vy = bddvar(str(aVar))
+
+            fx_res_vy_0 = bdd_expr.restrict({vy:0})
+            fx_res_vy_1 = bdd_expr.restrict({vy:1})
+            pos_arc = ~fx_res_vy_0 & fx_res_vy_1
+            neg_arc = fx_res_vy_0 & ~fx_res_vy_1
+            if pos_arc.is_one() or pos_arc.satisfy_one():
+                print ("positive")
+            if neg_arc.is_one() or neg_arc.satisfy_one():
+                print ("negative")
+                # a negative arc with weight = -1")
+                # a positive arc with weight = 1
+                # s_ig.setEdge(y_id, x_id, 1)
+            # print (count)
+            # print ((~count_vy_0 & count_vy_1))
+            # print ((count_vy_0 & ~count_vy_1)!=0)
+            # value_0 = dict()
+            # value_0[str(aVar)] = 0
+            # bdd.res
             if str(aVar) not in signed_directed_graph:
                 signed_directed_graph.add_node(str(aVar))
             count_aVar = string_fexpr.count(str(aVar))
@@ -202,8 +226,13 @@ print("Feedback Vertex Set:")
 print(feedback_vertex_set)
 print ("stg: " + str(len(stg.edges)))
 
-list_var = exprvars('x', len(list(boolean_network.keys())))
-# print ("list_var: " + str(list_var))
+print (len(list(boolean_network.keys())))
+
+list_var = []
+for i in range(len(list(boolean_network.keys()))):
+    list_var.append(exprvar('x', i))
+# list_var = exprvars('x', 3)
+print ("list_var: " + str(list_var))
 
 set_B = find_assignment(list_var)
 # for i in range(len(list(dict_boolean_network.keys()))):

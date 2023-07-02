@@ -31,41 +31,23 @@ def compute_signed_directed_graph(boolean_network):
         fexpr = expr(boolean_function)
         bdd_expr = expr2bdd(fexpr)
         fexpr = bdd2expr(bdd_expr)       # Convert the expression to BDD
-        print (fexpr)
+
         string_fexpr = str(fexpr)
         for aVar in fexpr.inputs:
-            # {aVar:0}
-            print (str(aVar))
-            # vy = bdd_vars[str(aVar)]
-            vy = bddvar(str(aVar))
+            if str(aVar) not in signed_directed_graph:
+                signed_directed_graph.add_node(str(aVar))
 
+            vy = bddvar(str(aVar))
             fx_res_vy_0 = bdd_expr.restrict({vy:0})
             fx_res_vy_1 = bdd_expr.restrict({vy:1})
             pos_arc = ~fx_res_vy_0 & fx_res_vy_1
             neg_arc = fx_res_vy_0 & ~fx_res_vy_1
-            if pos_arc.is_one() or pos_arc.satisfy_one():
-                print ("positive")
-            if neg_arc.is_one() or neg_arc.satisfy_one():
-                print ("negative")
-                # a negative arc with weight = -1")
-                # a positive arc with weight = 1
-                # s_ig.setEdge(y_id, x_id, 1)
-            # print (count)
-            # print ((~count_vy_0 & count_vy_1))
-            # print ((count_vy_0 & ~count_vy_1)!=0)
-            # value_0 = dict()
-            # value_0[str(aVar)] = 0
-            # bdd.res
-            if str(aVar) not in signed_directed_graph:
-                signed_directed_graph.add_node(str(aVar))
-            count_aVar = string_fexpr.count(str(aVar))
-            count_minusAVar = string_fexpr.count("~"+str(aVar))     # Count minus
 
-            # Calculate the value, if < 0 --> negative
-            if (count_aVar - count_minusAVar - count_minusAVar) < 0:
-                signed_directed_graph.add_edge(str(aVar), variable, sign=-1)
-            else:
+            if pos_arc.is_one() or pos_arc.satisfy_one():
                 signed_directed_graph.add_edge(str(aVar), variable, sign=1)
+            if neg_arc.is_one() or neg_arc.satisfy_one():
+                signed_directed_graph.add_edge(str(aVar), variable, sign=-1)
+                
     return signed_directed_graph
 
 # Compute State Transition Graph
@@ -170,6 +152,13 @@ def find_fixed_points(stg):
             not_fp.append(edge[0])
     return set(stg.nodes()) - set(not_fp)
 
+def find_fixed_points_bdd(stg):
+    not_fp = []
+    for edge in stg.edges:
+        if edge[0] != edge[1]:
+            not_fp.append(edge[0])
+    return set(stg.nodes()) - set(not_fp)
+
 # ------- Remove arcs from a graph
 def remove_arcs_from_graph(stg, set_B):
     stg_prime = nx.DiGraph()
@@ -245,7 +234,8 @@ print ("stg_prime: " + str(len(stg_prime.edges)))
 F = find_fixed_points(stg_prime)
 # print (len(F))
 F_fix = find_fixed_points(stg)
-# print (len(F_fix))
+print ("F_fix: ")
+print (F_fix)
 F = F - F_fix
 A = F_fix
 TT = A.union(F)

@@ -1,34 +1,5 @@
 import sys
-sys.setrecursionlimit(5000)
-print(sys.getrecursionlimit())
-
-def dfs(node, adj, visited, count):
-	visited[node] = True
-	count += 1
-	for neighbor in adj[node]:
-		if not visited[neighbor]:
-			count = dfs(neighbor, adj, visited, count)
-	return count
-
-def count_pairs(n, astronaut):
-	adj = [[] for i in range(n)]
-	for i, j in astronaut:
-		adj[i].append(j)
-		adj[j].append(i)
-
-	visited = [False] * n
-	v = []
-	for i in range(n):
-		count = 0
-		if not visited[i]:
-			count = dfs(i, adj, visited, count)
-			v.append(count)
-
-	ans = n * (n - 1) // 2
-	for i in range(len(v)):
-		ans -= v[i] * (v[i] - 1) // 2
-
-	return ans
+sys.setrecursionlimit(5000) # python limits 1000 recursion by default
 
 # ------- Read input file
 def read_input(file_name):
@@ -42,11 +13,42 @@ def read_input(file_name):
     	astronaut.append(line)
     return (n, astronaut)
 
+def dfs(node, adj, visited, count):
+	visited[node] = True
+	count += 1
+	for neighbor in adj[node]:
+		if not visited[neighbor]:
+			count = dfs(neighbor, adj, visited, count)
+	return count
+
+def count_pairs(N, mat):
+	# Create adjacency list
+	adj = [[] for i in range(N)]
+	for i, j in mat:
+		adj[i].append(j)
+		adj[j].append(i)
+
+    # Count the number of connected components
+	visited = [False] * N
+	v = []
+	for i in range(N):
+		count = 0
+		if not visited[i]:
+			count = dfs(i, adj, visited, count)
+			v.append(count)
+
+	print (v)
+	ans = N * (N - 1) // 2
+	for i in range(len(v)):
+        # Exclude pairs from each connected components
+		ans -= v[i] * (v[i] - 1) // 2
+
+	return ans
 # test = read_input("demofile2.txt")
 test = read_input("input_code_1.txt")
 
 # 4527147
-N = 9
-mat = [[0,1],[1,2],[2,5]]
-print ()
-print (count_pairs(test[0],test[1]))
+N = 5
+mat = [[0,1],[3,2],[0,4]]
+print (count_pairs(N,mat))
+# print (count_pairs(test[0],test[1]))

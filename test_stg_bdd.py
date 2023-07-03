@@ -87,7 +87,47 @@ boolean_functions = {
 
 compute_stg(boolean_functions)
 # string_ss = "(B & C) & (A | C) & ~B"
+def compute_stg_1(boolean_network):
+    # stg = nx.DiGraph()
+    list_str = list(boolean_network.keys())
+    list_bddvar = [bddvar(elm) for elm in list_str]
+    states = generate_all_states(tuple(list_bddvar))
+    stg_bdd_nodes = dict()
+    for i in range(len(states)):
+        x_i = bddvar('x',i)
+        stg_bdd_nodes[x_i] = states[i]
 
+    print(stg_bdd_nodes)
+    stg_bdd_edges = set()
+
+    fixed_points = {}
+    for k,v in stg_bdd_nodes.items():
+        my_updated_state = v.copy()
+        bdd_var_of_node = k.restrict({k:1})
+
+        for node, function in boolean_network.items():
+            expression = expr2bdd(expr(boolean_network[node]))
+            bdd_assignment = expression.restrict(v)
+            my_updated_state[bddvar(node)] = int(bdd_assignment)
+            print (str(v) + "-->" + str(my_updated_state))
+            edge = ~find_key_from_val(stg_bdd_nodes, v) | find_key_from_val(stg_bdd_nodes, my_updated_state)
+            bdd_var_of_node &= edge
+        print("bdd_var_of_node: " + str(bdd_var_of_node))
+        if str(bdd_var_of_node)  == '1':
+            fixed_points[k] = v
+
+    print ("fixed_points: " + str(fixed_points))
+    # # print(stg_bdd_edges)
+    # for node, function in boolean_network.items():
+    #     expression = expr2bdd(expr(boolean_network[node]))  # Convert to BDD
+    #     print ("node: " + str(type(node)) + str(node) )
+    #     for k,v in stg_bdd_nodes.items():
+    #         my_updated_state = v.copy()
+    #         bdd_assignment = expression.restrict(v)
+    #         my_updated_state[bddvar(node)] = int(bdd_assignment)
+    #         print (str(v) + "-->" + str(my_updated_state))
+    #         edge = find_key_from_val(stg_bdd_nodes, v) & find_key_from_val(stg_bdd_nodes, my_updated_state)
+    #         stg_bdd_edges.add(edge)
 # # Define the number of states (2^N, where N is the number of variables)
 # num_states = 2 ** len(variables)
 
@@ -96,6 +136,9 @@ compute_stg(boolean_functions)
 
 # # Find fixed points
 # fixed_points = find_fixed_points(state_transition_bdd, num_states)
+print("\n\n------------------------------------------")
+
+compute_stg_1(boolean_functions)
 
 print("Fixed points:")
 for point in fixed_points:

@@ -87,6 +87,23 @@ boolean_functions = {
 
 compute_stg(boolean_functions)
 # string_ss = "(B & C) & (A | C) & ~B"
+def compute_stg_2(boolean_network):
+    total_func = bddvar('x')
+    total_func = total_func.restrict({total_func:1})
+    cyclic_attractor = total_func
+    for k, v in boolean_network.items():
+        stg_bdd_node = bddvar(k)
+        stg_bdd_function = expr2bdd(expr(v))
+        total_func &= (stg_bdd_node & stg_bdd_function) | (~stg_bdd_node & ~stg_bdd_function)
+        cyclic_attractor ^= (stg_bdd_node & stg_bdd_function)
+
+    if len(list(total_func.satisfy_all())) > 0:
+        print(list(total_func.satisfy_all()))
+
+    # {000, 010, 011, 001})
+    if len(list(cyclic_attractor.satisfy_all())) > 0:
+        print(list(cyclic_attractor.satisfy_all()))
+
 def compute_stg_1(boolean_network):
     # stg = nx.DiGraph()
     list_str = list(boolean_network.keys())
@@ -138,8 +155,8 @@ def compute_stg_1(boolean_network):
 # fixed_points = find_fixed_points(state_transition_bdd, num_states)
 print("\n\n------------------------------------------")
 
-compute_stg_1(boolean_functions)
+compute_stg_2(boolean_functions)
 
-print("Fixed points:")
-for point in fixed_points:
-    print(f"State: {point}")
+# print("Fixed points:")
+# for point in fixed_points:
+#     print(f"State: {point}")

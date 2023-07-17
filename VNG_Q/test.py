@@ -45,10 +45,10 @@ def count_pairs(N, mat):
 
 	return ans
 # test = read_input("demofile2.txt")
-test = read_input("input_code_1.txt")
+# test = read_input("input_code_1.txt")
 
 # 4527147
 N = 5
-mat = [[0,1],[3,2],[0,4]]
+mat = [[1,2],[0,2],[1,4]]
 print (count_pairs(N,mat))
 # print (count_pairs(test[0],test[1]))

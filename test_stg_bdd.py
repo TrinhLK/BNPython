@@ -14,7 +14,7 @@ def count_satisfying_assignments(fi):
     
     return count
 
-def find_assignment(B):
+def find_retained_set(B):
     assignment = []
     result = {}
     for bi in B:
@@ -59,53 +59,42 @@ boolean_functions = {
 def compute_stg_fixed_points(boolean_network):
     total_func = bddvar('x')
     total_func = total_func.restrict({total_func:1})
-    cyclic_attractor = total_func
+
     for k, v in boolean_network.items():
         stg_bdd_node = bddvar(k)
         stg_bdd_function = expr2bdd(expr(v))
         total_func &= (stg_bdd_node & stg_bdd_function) | (~stg_bdd_node & ~stg_bdd_function)
-        cyclic_attractor ^= (stg_bdd_node & ~stg_bdd_function)
 
-        # {000, 010, 011, 001})
-        if len(list(cyclic_attractor.satisfy_all())) > 0:
-            print(list(cyclic_attractor.satisfy_all()))
-
-
-    if len(list(total_func.satisfy_all())) > 0:
-        print(list(total_func.satisfy_all()))
-
+    return list(total_func.satisfy_all())
 
 def compute_stg_minus_fixed_points(boolean_network, set_B):
-    total_func = bddvar('x')
-    total_func = total_func.restrict({total_func:1})
-    # cyclic_attractor = total_func
-    # for k, v in set_B.items():
-    #     print (str(k) + "\t" + str(type(k)))
-    #     print (str(v) + "\t" + str(type(v)))
-    for k, v in boolean_network.items():
-        stg_bdd_node = bddvar(k)
-        stg_bdd_function = expr2bdd(expr(v))
-        # print (type(set_B))
-        # print (type(stg_bdd_function))
 
-        print(stg_bdd_node.restrict(set_B))
-        # if stg_bdd_function.restrict(set_B) == 1:
-            # continue
-            # total_func &= (stg_bdd_node & stg_bdd_function) | (~stg_bdd_node & ~stg_bdd_function)
-        # cyclic_attractor ^= (stg_bdd_node & ~stg_bdd_function)
-        total_func &= (stg_bdd_node & stg_bdd_function) | (~stg_bdd_node & ~stg_bdd_function)
-        total_func |= (stg_bdd_node.restrict(set_B) != stg_bdd_function.restrict(set_B))
-        # {000, 010, 011, 001})
-        # if len(list(cyclic_attractor.satisfy_all())) > 0:
-        #     print(list(cyclic_attractor.satisfy_all()))
+    fp_reduced_STG = 1
+
+    for node, func in boolean_network.items():
+        node_bdd = bddvar(node)
+        func_bdd = expr2bdd(expr(func))
+        node = bddvar(node)
+
+        if node in retained_set:
+            if retained_set[node] == False:
+                # B[node] = 0, only need the condition node_bdd --> func_bdd
+                fp_reduced_STG &=  ((~node_bdd | func_bdd))
+            else:
+                # B[node] = 1, only need the condition ~node_bdd --> ~func_bdd
+                fp_reduced_STG &=  ((node_bdd | ~func_bdd))
+        else:
+            # not in retained set, apply the usual characterization
+            fp_reduced_STG &=  ((node_bdd & func_bdd) | (~node_bdd & ~func_bdd))
+
+    # print (list(fp_reduced_STG.satisfy_all()))
+    return list(fp_reduced_STG.satisfy_all())
 
 
-    if len(list(total_func.satisfy_all())) > 0:
-        print(list(total_func.satisfy_all()))
+fixed_points = compute_stg_fixed_points(boolean_functions)
+print ("fixed_points: " + str(fixed_points))
 
 print("\n\n------------------------------------------")
-
-compute_stg_fixed_points(boolean_functions)
 
 list_var = []
 for i in range(len(list(boolean_functions.keys()))):
@@ -113,8 +102,9 @@ for i in range(len(list(boolean_functions.keys()))):
 # list_var = exprvars('x', 3)
 print ("list_var: " + str(list_var))
 
-set_B = find_assignment(list_var)
-print (set_B)
+retained_set = find_retained_set(list_var)
+print ("retained_set: " + str(retained_set))
 
-compute_stg_minus_fixed_points(boolean_functions, set_B)
+F = compute_stg_minus_fixed_points(boolean_functions, retained_set)
+print ("F= " + str(F))
 

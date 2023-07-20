@@ -105,32 +105,55 @@ def is_reachable(boolean_functions, s1, s2):
     bddS1 = 1
     for v in s1:
         if s1[v] == 1:
-            bddS1 &= v 
-        else:
+            bddS1 |= v
+    for v in s1:
+        if s1[v] != 1:
             bddS1 &= ~v
 
     bddS2 = 1
     for v in s2:
         if s2[v] == 1:
-            bddS2 &= v
-        else:
+            bddS2 |= v
+    for v in s2:
+        if s2[v] != 1:
             bddS2 &= ~v
 
-    for i in range(10):
-        bddS1_prev = bddS1
+    RS = {bddS1}
+    FS = [bddS1]
+
+    while FS:
+        curr = FS.pop()
+        print (str(curr) + "\t" + str(bddS2))
+        if curr & bddS2 != 0:
+            return True
+
+        list_FS_k1 = []
         for var, func in boolean_functions.items():
             tmpbdd_func = expr2bdd(expr(func))
-            bddS1 &= tmpbdd_func
+            list_FS_k1.append(tmpbdd_func)
 
-        if bddS1 == (bddS1_prev):
-            print("Break after " + str(i))
-            break
+        for elm in list_FS_k1:
+            if elm not in RS:
+                RS.add(elm)
+                FS.append(elm)
 
-    
-    if bddS2 != bddS1:
-        print ("NO: " + str(s1) + " --x--> " + str(s2))
-    else:
-        print ("YES: " + str(s1) + " ----> " + str(s2))
+    print("RS: " + str(RS))
+
+
+    # for i in range(10):
+    #     bddS1_next = bddS1
+    #     for var, func in boolean_functions.items():
+    #         tmpbdd_func = expr2bdd(expr(func))
+    #         bddS1_next = bddS1_next & tmpbdd_func
+
+    #         if bddS1_next & bddS2 != 0:
+    #             return True
+
+    return False
+    # if bddS2 != bddS1:
+    #     print ("NO: " + str(s1) + " --x--> " + str(s2))
+    # else:
+    #     print ("YES: " + str(s1) + " ----> " + str(s2))
 
 def is_reachable_1(boolean_functions, s1, s2):
     
@@ -279,9 +302,13 @@ def is_reachable_2(boolean_functions, s1, s2):
     # print(str(tp_node_s1) + "\t" + str(tp_val_s1))
 # -----------------------------
 # is_reachable_2(boolean_functions, F[1], fixed_points[0])
+print(is_reachable(boolean_functions, F[1], fixed_points[0]))
+
 print(is_reachable_2(boolean_functions, F[1], fixed_points[0]))
 print("--------------")
 # is_reachable_2(boolean_functions, F[0], F[1])
+print(is_reachable(boolean_functions, F[0], F[1]))
+
 print(is_reachable_2(boolean_functions, F[0], F[1]))
 # lns_1 = [i for n, i in enumerate(list_next_states) if i not in list_next_states[n + 1:]]
 

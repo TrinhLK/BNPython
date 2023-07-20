@@ -189,7 +189,7 @@ def standardize_state(s, boolean_functions):
     int_val = [int(v) for v in list(s.values())]
     # tp_val_s = tuple(s.values())
     my_tuple = (tp_node_s, tuple(int_val))
-    print (my_tuple)
+    # print (my_tuple)
     return my_tuple
 
 def is_in(s, list_s):
@@ -243,13 +243,7 @@ def is_reachable_3(boolean_functions, s1, s2):
         break
 
 def is_reachable_2(boolean_functions, s1, s2):
-    # for node, func in boolean_functions.items():
-    #     if bddvar(node) not in s1:
-    #         s1[bddvar(node)] = 1
-    #     if bddvar(node) not in s2:
-    #         s1[bddvar(node)] = 2
-    # tp_node_s1 = tuple(s1.keys())
-    # tp_val_s1 = tuple(s1.values())
+  
     tp_s1 = standardize_state(s1,boolean_functions)
     tp_s2 = standardize_state(s2,boolean_functions)
     visited = {tp_s1[1]}
@@ -261,20 +255,15 @@ def is_reachable_2(boolean_functions, s1, s2):
         # Check if s2 is visited
         if curr == tp_s2[1]:
             print ("path: " + str(path))
+            print (str(s1) + " ----> " + str(s2))
             return True
 
         list_successor_s1 = []
         for i in range(len(tp_s1[0])):
             new_value = list(curr)
-            # print ("cur: " + str(new_value))
-            # print (str(tp_s1[0][i]))
-            # print (boolean_functions[str(tp_s1[0][i])])
             new_value[i] = int(expr2bdd(expr(boolean_functions[str(tp_s1[0][i])])).restrict(s1))
-            # new_value[i] = (expr2bdd(expr(boolean_functions[str(tp_s1[0][i])])).restrict(s1))
-            # print ("new_value: " + str(new_value))
             list_successor_s1.append(new_value)
-            # tmp_s1 = 
-        # print (list_successor_s1)
+
         list_successor_s1.sort()
         list_successor_s1 = list(list_successor_s1 for list_successor_s1,_ in itertools.groupby(list_successor_s1))
         print (list_successor_s1)
@@ -283,7 +272,7 @@ def is_reachable_2(boolean_functions, s1, s2):
             if tuple(succ) not in visited:
                 visited.add(tuple(succ))
                 queue.append(tuple(succ))
-        
+    print (str(s1) + " --x--> " + str(s2))
     return False
 
 

@@ -179,6 +179,7 @@ def remove_arcs_from_graph(stg, set_B):
 # ------- Check whether s2 can be reached from s1
 def is_reachable(G, s1, s2):
     # Perform BFS starting from s1
+    print("s1 = " + str(s1))
     visited = {s1}
     queue = [s1]
     path = []

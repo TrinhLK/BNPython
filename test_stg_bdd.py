@@ -2,7 +2,7 @@ import itertools
 from pyeda.inter import *
 from random import randint, choice
 import random
-
+import copy
 # Compute B
 # -----------------------------
 def count_satisfying_assignments(fi):
@@ -117,12 +117,12 @@ def is_reachable(boolean_functions, s1, s2):
             bddS2 &= ~v
 
     for i in range(10):
-        # bddS1_prev = bddS1
+        bddS1_prev = bddS1
         for var, func in boolean_functions.items():
-            tmpbdd_func = expr2bdd(expr(func)).restrict(s1)
+            tmpbdd_func = expr2bdd(expr(func))
             bddS1 &= tmpbdd_func
 
-        if bddS1 == (bddS2):
+        if bddS1 == (bddS1_prev):
             print("Break after " + str(i))
             break
 
@@ -131,7 +131,179 @@ def is_reachable(boolean_functions, s1, s2):
         print ("NO: " + str(s1) + " --x--> " + str(s2))
     else:
         print ("YES: " + str(s1) + " ----> " + str(s2))
+
+def is_reachable_1(boolean_functions, s1, s2):
+    
+    for node, func in boolean_functions.items():
+        if bddvar(node) not in s1:
+            s1[bddvar(node)] = 1
+    print(s1)
+    tp_s1 = tuple(s1.values())
+    reachable_set = {tp_s1}
+    foward_set = [s1]
+    path = []
+    k = 0
+    while foward_set:
+        cur = foward_set.pop()
+        
+        for node, func in boolean_functions.items():
+            if bddvar(node) not in s1:
+                s1[bddvar(node)] = 1
+                cur[bddvar(node)] = 1
+        print("--- cur: " + str(cur))
+        # next_state = copy.deepcopy(cur)
+        
+        path.append(cur)
+        if cur == s2:
+            return True
+
+        list_next_states = []
+        for node, func in boolean_functions.items():
+            next_state = cur
+            # print(node + "\t" + func + "\t" + str(expr2bdd(expr(func)).restrict(s1)))
+            next_state[bddvar(node)] = expr2bdd(expr(func)).restrict(s1)
+            print("next_state: " + str(next_state))
+            tmp_next = copy.deepcopy(next_state)
+            print ("check: " + str(tmp_next) + "\t" + str(list_next_states) + ": " + str(is_in(tmp_next, list_next_states)))
+            if is_in(tmp_next, list_next_states) == False:
+                list_next_states.append(tmp_next)
+        # print("---next---")
+        print(cur)
+        print(list_next_states)
+        lns_1 = [i for n, i in enumerate(list_next_states) if i not in list_next_states[n + 1:]]
+        print(lns_1)
+        break
+        # for node, func in boolean_functions.items():
+        # print("--- next_state: " + str(next_state))
+        for n_state in list_next_states:
+            if n_state not in reachable_set:
+                reachable_set.append(n_state)
+                foward_set.append(n_state)
+    return False
+
+def standardize_state(s, boolean_functions):
+    for node, func in boolean_functions.items():
+        if bddvar(node) not in s:
+            s[bddvar(node)] = 1
+    tp_node_s = tuple(s.keys())
+    int_val = [int(v) for v in list(s.values())]
+    # tp_val_s = tuple(s.values())
+    my_tuple = (tp_node_s, tuple(int_val))
+    print (my_tuple)
+    return my_tuple
+
+def is_in(s, list_s):
+    for s_i in list_s:
+        if all((s_i.get(k) == v for k, v in s.items())):
+            return True
+    return False
+
+def is_reachable_3(boolean_functions, s1, s2):
+    tmp_s1 = {}
+    for k, v in s1.items():
+        tmp_s1[str(k)] = v
+
+    tmp_s2 = {}
+    for k, v in s2.items():
+        tmp_s2[str(k)] = v
+
+    reachable_set = [tmp_s1]
+    foward_set = [tmp_s1]
+    path = []
+    k = 0
+    while foward_set:
+        cur = foward_set.pop()
+        
+        for node, func in boolean_functions.items():
+            if (node) not in tmp_s1:
+                tmp_s1[(node)] = 1
+                cur[(node)] = 1
+        print("--- cur: " + str(cur))
+        # next_state = copy.deepcopy(cur)
+        
+        path.append(cur)
+        if cur == tmp_s2:
+            return True
+
+        list_next_states = []
+        for node, func in boolean_functions.items():
+            next_state = cur
+            # print(node + "\t" + func + "\t" + str(expr2bdd(expr(func)).restrict(s1)))
+            next_state[(node)] = expr2bdd(expr(func)).restrict(s1)
+            print("next_state: " + str(next_state))
+            tmp_next = copy.deepcopy(next_state)
+            print ("check: " + str(tmp_next) + "\t" + str(list_next_states) + ": " + str(is_in(tmp_next, list_next_states)))
+            if is_in(tmp_next, list_next_states) == False:
+                list_next_states.append(tmp_next)
+        # print("---next---")
+        print(cur)
+        print(list_next_states)
+        lns_1 = [i for n, i in enumerate(list_next_states) if i not in list_next_states[n + 1:]]
+        print(lns_1)
+        break
+
+def is_reachable_2(boolean_functions, s1, s2):
+    # for node, func in boolean_functions.items():
+    #     if bddvar(node) not in s1:
+    #         s1[bddvar(node)] = 1
+    #     if bddvar(node) not in s2:
+    #         s1[bddvar(node)] = 2
+    # tp_node_s1 = tuple(s1.keys())
+    # tp_val_s1 = tuple(s1.values())
+    tp_s1 = standardize_state(s1,boolean_functions)
+    tp_s2 = standardize_state(s2,boolean_functions)
+    visited = {tp_s1[1]}
+    queue = [tp_s1[1]]
+    path = []
+    while queue:
+        curr = queue.pop(0)
+        path.append(curr)
+        # Check if s2 is visited
+        if curr == tp_s2[1]:
+            print ("path: " + str(path))
+            return True
+
+        list_successor_s1 = []
+        for i in range(len(tp_s1[0])):
+            new_value = list(curr)
+            # print ("cur: " + str(new_value))
+            # print (str(tp_s1[0][i]))
+            # print (boolean_functions[str(tp_s1[0][i])])
+            new_value[i] = int(expr2bdd(expr(boolean_functions[str(tp_s1[0][i])])).restrict(s1))
+            # new_value[i] = (expr2bdd(expr(boolean_functions[str(tp_s1[0][i])])).restrict(s1))
+            # print ("new_value: " + str(new_value))
+            list_successor_s1.append(new_value)
+            # tmp_s1 = 
+        # print (list_successor_s1)
+        list_successor_s1.sort()
+        list_successor_s1 = list(list_successor_s1 for list_successor_s1,_ in itertools.groupby(list_successor_s1))
+        print (list_successor_s1)
+
+        for succ in list_successor_s1:
+            if tuple(succ) not in visited:
+                visited.add(tuple(succ))
+                queue.append(tuple(succ))
+        
+    return False
+
+
+    # print(str(tp_node_s1) + "\t" + str(tp_val_s1))
 # -----------------------------
-is_reachable(boolean_functions, F[1], fixed_points[0])
+# is_reachable_2(boolean_functions, F[1], fixed_points[0])
+print(is_reachable_2(boolean_functions, F[1], fixed_points[0]))
 print("--------------")
-is_reachable(boolean_functions, F[0], F[1])
+# is_reachable_2(boolean_functions, F[0], F[1])
+print(is_reachable_2(boolean_functions, F[0], F[1]))
+# lns_1 = [i for n, i in enumerate(list_next_states) if i not in list_next_states[n + 1:]]
+
+
+# inputTuple = (('a','b','c'),(1,2,3))
+# result = {inputTuple[0][i] : inputTuple[1][i] for i, _ in enumerate(inputTuple[1])}
+# print (result)
+# inputTuple_1 = (('a','c','b'),(1,3,2))
+# result_1 = {inputTuple_1[0][i] : inputTuple_1[1][i] for i, _ in enumerate(inputTuple_1[1])}
+# print (result_1)
+# res = all((result_1.get(k) == v for k, v in result.items()))
+# print(res)
+
+    # for i in len

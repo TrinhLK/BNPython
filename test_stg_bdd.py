@@ -129,8 +129,8 @@ def is_reachable(boolean_functions, s1, s2):
 
         list_FS_k1 = []
         for var, func in boolean_functions.items():
-            tmpbdd_func = expr2bdd(expr(func))
-            list_FS_k1.append(tmpbdd_func)
+            tmpbdd_func &= (bddvar(var) & expr2bdd(expr(func))) | (~bddvar(var) & ~expr2bdd(expr(func)))
+        list_FS_k1.append(tmpbdd_func)
 
         for elm in list_FS_k1:
             if elm not in RS:

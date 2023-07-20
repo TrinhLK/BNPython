@@ -197,6 +197,26 @@ def is_reachable(G, s1, s2):
     # If s2 is not visited, it is not reachable from s1
     return False
 
+def is_reachable_1(G, s1, s2):
+    # Perform BFS starting from s1
+    visited = {s1}
+    queue = [s1]
+    path = []
+    while queue:
+        curr = queue.pop(0)
+        path.append(curr)
+        # Check if s2 is visited
+        if curr == s2:
+            print ("path: " + str(path))
+            return True
+        # Add unvisited successor states to the queue
+        for succ in G.successors(curr):
+            if succ not in visited:
+                visited.add(succ)
+                queue.append(succ)
+    # If s2 is not visited, it is not reachable from s1
+    return False
+
 # boolean_network = read_input("arellano_rootstem.bnet")
 boolean_network = read_input("boolean_network_1.txt")
 

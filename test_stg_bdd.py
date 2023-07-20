@@ -45,16 +45,6 @@ boolean_functions = {
     "x3": "(x2 & ~x3) | (x1 & ~x2 & ~x3) | (x1 & x2 & x3)"
 }
 
-# boolean_functions = {
-#     "A": "A & B & C",
-#     "B": "A | ~C",
-#     "C": "(B & ~C) | (A & ~B & ~C) | (A & B & C)"
-# }
-
-# x1, x1 & x2 & x3
-# x2, x1 | ~x3
-# x3, (x2 & ~x3) | (x1 & ~x2 & ~x3) | (x1 & x2 & x3)
-
 # string_ss = "(B & C) & (A | C) & ~B"
 def compute_stg_fixed_points(boolean_network):
     total_func = bddvar('x')
@@ -108,3 +98,40 @@ print ("retained_set: " + str(retained_set))
 F = compute_stg_minus_fixed_points(boolean_functions, retained_set)
 print ("F= " + str(F))
 
+# # Check the reachability
+# # -----------------------------
+def is_reachable(boolean_functions, s1, s2):
+    #Initiate BDD with s1
+    bddS1 = 1
+    for v in s1:
+        if s1[v] == 1:
+            bddS1 &= v 
+        else:
+            bddS1 &= ~v
+
+    bddS2 = 1
+    for v in s2:
+        if s2[v] == 1:
+            bddS2 &= v
+        else:
+            bddS2 &= ~v
+
+    for i in range(10):
+        # bddS1_prev = bddS1
+        for var, func in boolean_functions.items():
+            tmpbdd_func = expr2bdd(expr(func)).restrict(s1)
+            bddS1 &= tmpbdd_func
+
+        if bddS1 == (bddS2):
+            print("Break after " + str(i))
+            break
+
+    
+    if bddS2 != bddS1:
+        print ("NO: " + str(s1) + " --x--> " + str(s2))
+    else:
+        print ("YES: " + str(s1) + " ----> " + str(s2))
+# -----------------------------
+is_reachable(boolean_functions, F[1], fixed_points[0])
+print("--------------")
+is_reachable(boolean_functions, F[0], F[1])

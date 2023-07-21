@@ -100,44 +100,90 @@ print ("F= " + str(F))
 
 # # Check the reachability
 # # -----------------------------
+def compute_bdd(s):
+    bddS = 1
+    for v in s:
+        if s[v] == 1:
+            bddS |= v
+    for v in s:
+        if s[v] != 1:
+            bddS &= ~v
+    return bddS
+
+def is_equivalent(dict1, dict2):
+    if len(dict1) <= len(dict2):
+        for k, v in dict1.items():
+            if dict1[k] != dict2[k]:
+                return False
+    else:
+        for k, v in dict2.items():
+            if dict1[k] != dict2[k]:
+                return False
+    return True
+
 def is_reachable(boolean_functions, s1, s2):
     #Initiate BDD with s1
-    bddS1 = 1
-    for v in s1:
-        if s1[v] == 1:
-            bddS1 |= v
-    for v in s1:
-        if s1[v] != 1:
-            bddS1 &= ~v
+    next_bddS1 = 1
 
-    bddS2 = 1
-    for v in s2:
-        if s2[v] == 1:
-            bddS2 |= v
-    for v in s2:
-        if s2[v] != 1:
-            bddS2 &= ~v
+    for node, func in boolean_functions.items():
+        node_bdd = bddvar(node)
+        func_bdd = expr2bdd(expr(func))
+        node = bddvar(node)
 
-    RS = {bddS1}
-    FS = [bddS1]
+        if node in s1:
+            if s1[node] == False:
+                # B[node] = 0, only need the condition node_bdd --> func_bdd
+                next_bddS1 &=  ((~node_bdd | func_bdd))
+            else:
+                # B[node] = 1, only need the condition ~node_bdd --> ~func_bdd
+                next_bddS1 &=  ((node_bdd | ~func_bdd))
 
-    while FS:
-        curr = FS.pop()
-        print (str(curr) + "\t" + str(bddS2))
-        if curr & bddS2 != 0:
-            return True
+    list_next_states = list(next_bddS1.satisfy_all())
+    print(list_next_states)
+    # while list_next_states:
+    #     next_state = list_next_states.pop()
 
-        list_FS_k1 = []
-        for var, func in boolean_functions.items():
-            tmpbdd_func &= (bddvar(var) & expr2bdd(expr(func))) | (~bddvar(var) & ~expr2bdd(expr(func)))
-        list_FS_k1.append(tmpbdd_func)
+    for next_state in list_next_states:
+        if is_equivalent(next_state, s2):
+        # if compute_bdd(s2) & compute_bdd(next_state) != 0:
+            print("YESS: " + str(next_state))
+        else:
+            print("NO" + str(next_state))
+    # for v in s1:
+    #     if s1[v] == 1:
+    #         bddS1 |= v
+    # for v in s1:
+    #     if s1[v] != 1:
+    #         bddS1 &= ~v
 
-        for elm in list_FS_k1:
-            if elm not in RS:
-                RS.add(elm)
-                FS.append(elm)
+    # bddS2 = 1
+    # for v in s2:
+    #     if s2[v] == 1:
+    #         bddS2 |= v
+    # for v in s2:
+    #     if s2[v] != 1:
+    #         bddS2 &= ~v
 
-    print("RS: " + str(RS))
+    # RS = {bddS1}
+    # FS = [bddS1]
+
+    # while FS:
+    #     curr = FS.pop()
+    #     print (str(curr) + "\t" + str(bddS2))
+    #     if curr & bddS2 != 0:
+    #         return True
+
+    #     list_FS_k1 = []
+    #     for var, func in boolean_functions.items():
+    #         tmpbdd_func &= (bddvar(var) & expr2bdd(expr(func))) | (~bddvar(var) & ~expr2bdd(expr(func)))
+    #     list_FS_k1.append(tmpbdd_func)
+
+    #     for elm in list_FS_k1:
+    #         if elm not in RS:
+    #             RS.add(elm)
+    #             FS.append(elm)
+
+    # print("RS: " + str(RS))
 
 
     # for i in range(10):
@@ -149,7 +195,7 @@ def is_reachable(boolean_functions, s1, s2):
     #         if bddS1_next & bddS2 != 0:
     #             return True
 
-    return False
+    # return False
     # if bddS2 != bddS1:
     #     print ("NO: " + str(s1) + " --x--> " + str(s2))
     # else:
@@ -301,6 +347,8 @@ def is_reachable_2(boolean_functions, s1, s2):
 
     # print(str(tp_node_s1) + "\t" + str(tp_val_s1))
 # -----------------------------
+print("--------------")
+
 # is_reachable_2(boolean_functions, F[1], fixed_points[0])
 print(is_reachable(boolean_functions, F[1], fixed_points[0]))
 

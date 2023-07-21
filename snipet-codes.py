@@ -122,7 +122,35 @@ def find_assignment(B):
     return tuple(assignment)
 
 # Example usage
-B = exprvars('b', 5)  # Assuming B is a set of 5 Boolean variables
+# B = exprvars('b', 5)  # Assuming B is a set of 5 Boolean variables
 
-assignment = find_assignment(B)
-print("Assignment:", assignment)
+# assignment = find_assignment(B)
+# print("Assignment:", assignment)
+dict1={'x':1, 'y':0, 'z':1}
+dict2={'x':1, 'y':0, 'z':0}
+print(len(dict1))
+
+def bdd_of_dict(dict1):
+	
+	bdd_dict1 = ""
+	for k, v in dict1.items():
+		bdd_dict1 = "(" + k + "&" + str(v) + " + ~" + k + " & " + bdd_dict1 + ")"  
+	return bdd_dict1
+
+print (bdd_of_dict(dict1))
+	# bdd_dict1 &= bddvar(list(dict1.keys())[0]) & bddvar(list(dict1.values())[0]) | ~bddvar(list(dict1.keys())[0])
+	# if len(dict1) == 1:
+	# 	# bdd_dict1 &= bddvar(list(dict1.keys())[0]) & bddvar(list(dict1.values())[0]) | bddvar(list(dict1.keys())[0])
+	# 	return bdd_dict1
+
+	# for i in range(1, len(dict1.keys())):
+	# 	bdd_dict1 |= bddvar(list(dict1.keys())[i]) & bddvar(dict1[list(dict1.keys())[i]]) | ~bddvar(list(dict1.keys())[i])&bdd_dict1
+	# bdd_dict1 += "(" + list(dict1.keys())[0] + "&" + list(dict1.values())[0] + " | ~" + list(dict1.keys())[0] + ")"
+	# if len(dict1) == 1:
+	# 	# bdd_dict1 &= bddvar(list(dict1.keys())[0]) & bddvar(list(dict1.values())[0]) | bddvar(list(dict1.keys())[0])
+	# 	return bdd_dict1
+
+	# for i in range(1, len(dict1.keys())):
+	# 	tmp = (list(dict1.keys())[i]) + " & " + (dict1[list(dict1.keys())[i]]) + " | ~" + (list(dict1.keys())[i]) + " & " + bdd_dict1
+
+

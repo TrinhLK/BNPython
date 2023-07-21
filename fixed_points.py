@@ -32,3 +32,7 @@ stg.add_edge((1, 0), (1, 1))
 stg.add_edge((1, 1), (1, 1))# Check if (1,0) is reachable from (0,0) in the STG
 reachable = is_reachable(stg, (0,0), (1,0))
 print(reachable) # should print True
+test1 = [1,2,3,4]
+test2 = [3,5,6]
+test1 = test1 + test2
+print(test1)

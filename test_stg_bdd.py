@@ -3,6 +3,14 @@ from pyeda.inter import *
 from random import randint, choice
 import random
 import copy
+
+def construct_boolean_network(boolean_network):
+    # Convert the dictionary of Boolean expressions into a dictionary of PyEDA BDDs
+    bdd_network = {}
+    for var, e_expr in boolean_network.items():
+        bdd_network[bddvar(var)] = expr2bdd(expr(e_expr))
+    return bdd_network
+
 # Compute B
 # -----------------------------
 def count_satisfying_assignments(fi):
@@ -100,17 +108,36 @@ print ("F= " + str(F))
 
 # # Check the reachability
 # # -----------------------------
+# def compute_bdd(s):
+#     bddS = 1
+#     for v in s:
+#         if s[v] == 1:
+#             bddS &= v&s[v]
+#     for v in s:
+#         if s[v] != 1:
+#             bddS |= ~v
+#     return bddS
+
 def compute_bdd(s):
     bddS = 1
-    for v in s:
-        if s[v] == 1:
-            bddS |= v
-    for v in s:
-        if s[v] != 1:
-            bddS &= ~v
+    for node, func in s.items():
+        bddS = node & func | ~node & bddS
     return bddS
 
+# def is_equivalent(dict1, dict2):
+#     if len(dict1) <= len(dict2):
+#         for k, v in dict1.items():
+#             if dict1[k] != dict2[k]:
+#                 return False
+#     else:
+#         for k, v in dict2.items():
+#             if dict1[k] != dict2[k]:
+#                 return False
+#     return True
+
 def is_equivalent(dict1, dict2):
+    # tp1 = tuple(dict1.values())
+    # tp2 = tuple(dict2.values())
     if len(dict1) <= len(dict2):
         for k, v in dict1.items():
             if dict1[k] != dict2[k]:
@@ -121,9 +148,8 @@ def is_equivalent(dict1, dict2):
                 return False
     return True
 
-def is_reachable(boolean_functions, s1, s2):
-    #Initiate BDD with s1
-    next_bddS1 = 1
+def compute_next_states(boolean_functions, s1):
+    next_bddS1 = compute_bdd(s1)
 
     for node, func in boolean_functions.items():
         node_bdd = bddvar(node)
@@ -138,17 +164,80 @@ def is_reachable(boolean_functions, s1, s2):
                 # B[node] = 1, only need the condition ~node_bdd --> ~func_bdd
                 next_bddS1 &=  ((node_bdd | ~func_bdd))
 
-    list_next_states = list(next_bddS1.satisfy_all())
-    print(list_next_states)
-    # while list_next_states:
-    #     next_state = list_next_states.pop()
+    return list(next_bddS1.satisfy_all())
 
-    for next_state in list_next_states:
-        if is_equivalent(next_state, s2):
-        # if compute_bdd(s2) & compute_bdd(next_state) != 0:
-            print("YESS: " + str(next_state))
-        else:
-            print("NO" + str(next_state))
+def update_lacked_state(s, boolean_functions):
+    if len(s) < len(boolean_functions.keys):
+        return False
+    # print(tuple(s.values()))
+
+def is_reachable(boolean_functions, s1, s2):
+    #Initiate BDD with s1
+    # next_bddS1 = 1
+    next_bddS1 = compute_bdd(s1)
+
+    # for node, func in boolean_functions.items():
+    #     node_bdd = bddvar(node)
+    #     func_bdd = expr2bdd(expr(func))
+    #     node = bddvar(node)
+
+    #     if node in s1:
+    #         if s1[node] == False:
+    #             # B[node] = 0, only need the condition node_bdd --> func_bdd
+    #             next_bddS1 &=  ((~node_bdd | func_bdd))
+    #         else:
+    #             # B[node] = 1, only need the condition ~node_bdd --> ~func_bdd
+    #             next_bddS1 &=  ((node_bdd | ~func_bdd))
+
+    list_next_states = compute_next_states(boolean_functions, s1)
+    # print(list_next_states)
+    print (len(list_next_states))
+    if len(list_next_states) < 0 and next_bddS1 & compute_bdd(s2) == 0:
+        return False
+
+    # visited = {get_tuple_of_state(list_next_states[0])}
+    visited = {compute_bdd(list_next_states[0])}
+    # i = 0
+    while list_next_states:
+        print (list_next_states)
+
+        m_next_state = list_next_states.pop()
+        # if get_tuple_of_state(m_next_state) not in visited:
+        #     visited.add(get_tuple_of_state(m_next_state))
+
+        # get_tuple_of_state(m_next_state)
+        print ("checking: " + str(m_next_state) + "\t" + str(compute_bdd(m_next_state)))
+        if compute_bdd(m_next_state) & compute_bdd(s2) != 0:
+            return True
+
+        for elm in compute_next_states(boolean_functions, m_next_state):
+            if get_tuple_of_state(m_next_state) not in visited:
+                list_next_states.append(elm)
+                visited.add(compute_bdd(elm))
+        # list_next_states = list_next_states + compute_next_states(boolean_functions, m_next_state)
+
+        # i += 1
+        # for node, func in boolean_functions.items():
+        #     node_bdd = bddvar(node)
+        #     func_bdd = expr2bdd(expr(func))
+        #     node = bddvar(node)
+
+        #     if node in s1:
+        #         if s1[node] == False:
+        #             # B[node] = 0, only need the condition node_bdd --> func_bdd
+        #             next_bddS1 &=  ((~node_bdd | func_bdd))
+        #         else:
+        #             # B[node] = 1, only need the condition ~node_bdd --> ~func_bdd
+        #             next_bddS1 &=  ((node_bdd | ~func_bdd))
+        # list_next_states = list_next_states + list(next_bddS1.satisfy_all())
+
+    return False
+    # for next_state in list_next_states:
+    #     if is_equivalent(next_state, s2):
+    #     # if compute_bdd(s2) & compute_bdd(next_state) != 0:
+    #         print("YESS: " + str(next_state))
+    #     else:
+    #         print("NO" + str(next_state))
     # for v in s1:
     #     if s1[v] == 1:
     #         bddS1 |= v
@@ -351,12 +440,12 @@ print("--------------")
 
 # is_reachable_2(boolean_functions, F[1], fixed_points[0])
 print(is_reachable(boolean_functions, F[1], fixed_points[0]))
-
+print("----")
 print(is_reachable_2(boolean_functions, F[1], fixed_points[0]))
 print("--------------")
 # is_reachable_2(boolean_functions, F[0], F[1])
 print(is_reachable(boolean_functions, F[0], F[1]))
-
+print("----")
 print(is_reachable_2(boolean_functions, F[0], F[1]))
 # lns_1 = [i for n, i in enumerate(list_next_states) if i not in list_next_states[n + 1:]]
 

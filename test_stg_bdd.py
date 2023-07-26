@@ -124,6 +124,13 @@ def compute_bdd(s):
         bddS = node & func | ~node & bddS
     return bddS
 
+def compute_bdd_1(boolean_functions, s):
+    bddS = 1
+    for node, value in s.items():
+        if node is in boolean_functions:
+            b
+    return bddS
+
 # def is_equivalent(dict1, dict2):
 #     if len(dict1) <= len(dict2):
 #         for k, v in dict1.items():
@@ -166,6 +173,24 @@ def compute_next_states(boolean_functions, s1):
 
     return list(next_bddS1.satisfy_all())
 
+def compute_next_states_1(boolean_functions, s1):
+    # next_bddS1 = compute_bdd(s1)
+    list_next_states = []
+    for node, func in boolean_functions.items():
+        node_bdd = bddvar(node)
+        func_bdd = expr2bdd(expr(func))
+        node = bddvar(node)
+        list_next_states.append(s1 & func_bdd)
+        # if node in s1:
+        #     if s1[node] == False:
+        #         # B[node] = 0, only need the condition node_bdd --> func_bdd
+        #         next_bddS1 &=  ((~node_bdd | func_bdd))
+        #     else:
+        #         # B[node] = 1, only need the condition ~node_bdd --> ~func_bdd
+        #         next_bddS1 &=  ((node_bdd | ~func_bdd))
+
+    return list_next_states
+
 def update_lacked_state(s, boolean_functions):
     if len(s) < len(boolean_functions.keys):
         return False
@@ -188,32 +213,34 @@ def is_reachable(boolean_functions, s1, s2):
     #         else:
     #             # B[node] = 1, only need the condition ~node_bdd --> ~func_bdd
     #             next_bddS1 &=  ((node_bdd | ~func_bdd))
-
-    list_next_states = compute_next_states(boolean_functions, s1)
+    if (next_bddS1 == compute_bdd(s2)):
+        return True
+    print ("checking s1 vs. s2: " + str(s1) + "\t" + str(s2) + "\t" + str(next_bddS1 == compute_bdd(s2)))
+    list_next_states = compute_next_states_1(boolean_functions, next_bddS1)
     # print(list_next_states)
-    print (len(list_next_states))
-    if len(list_next_states) < 0 and next_bddS1 & compute_bdd(s2) == 0:
+    # print (len(list_next_states))
+    if len(list_next_states) < 0:
         return False
 
     # visited = {get_tuple_of_state(list_next_states[0])}
-    visited = {compute_bdd(list_next_states[0])}
+    visited = {list_next_states[0]}
     # i = 0
     while list_next_states:
-        print (list_next_states)
+        # print (list_next_states)
 
-        m_next_state = list_next_states.pop()
+        m_next_state = list_next_states.pop().satisfy_one()
         # if get_tuple_of_state(m_next_state) not in visited:
         #     visited.add(get_tuple_of_state(m_next_state))
 
         # get_tuple_of_state(m_next_state)
-        print ("checking: " + str(m_next_state) + "\t" + str(compute_bdd(m_next_state)))
-        if compute_bdd(m_next_state) & compute_bdd(s2) != 0:
+        print ("checking next_s1 vs. s2: " + str(m_next_state) + "\t" + str((s2)))
+        if compute_bdd(m_next_state) == compute_bdd(s2):
             return True
 
-        for elm in compute_next_states(boolean_functions, m_next_state):
-            if get_tuple_of_state(m_next_state) not in visited:
+        for elm in compute_next_states_1(boolean_functions, m_next_state):
+            if compute_bdd(m_next_state) not in visited:
                 list_next_states.append(elm)
-                visited.add(compute_bdd(elm))
+                visited.add(elm)
         # list_next_states = list_next_states + compute_next_states(boolean_functions, m_next_state)
 
         # i += 1

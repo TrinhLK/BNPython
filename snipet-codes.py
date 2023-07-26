@@ -127,9 +127,13 @@ def find_assignment(B):
 # assignment = find_assignment(B)
 # print("Assignment:", assignment)
 dict1={'x':1, 'y':0, 'z':1}
-dict2={'x':1, 'y':0, 'z':0}
+dict2={bddvar('x'):1, bddvar('y'):0, bddvar('z'):0}
 print(len(dict1))
+if 'x' in dict1:
+	print ('x is in dict1')
 
+if bddvar('x') in dict2:
+	print ('bdd_x is in dict2')
 def bdd_of_dict(dict1):
 	
 	bdd_dict1 = ""

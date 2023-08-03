@@ -124,32 +124,105 @@ def generate_all_states(nodes):
         result.append(res)
     return result
 
-def compute_translation_relation(boolean_network):
-    # stg = nx.DiGraph()
-    # list_str = list(boolean_network.keys())
+def compute_translation_relation_1(boolean_network):
     list_bddvar = list(boolean_network.keys())
-    states = generate_all_states(tuple(list_bddvar))
-    print (states)
+    # T = []
+    result = 0
+    list_next_bddvar = [bddvar('next_' + str(cur_var)) for cur_var in list_bddvar]
 
-    result = set()
-
-    for state in states:
-        next_state = state.copy()
-
-        # Create the next_state
-        for node in boolean_network.keys():
-            next_state[bddvar('next_' + str(node))] = next_state[node]
-            del next_state[node]
-        
-        # Update each next state
-        for node, function in boolean_network.items():
-            next_state_1 = next_state.copy()
-            next_state_1[bddvar('next_' + str(node))] = function.restrict(state)
-        # print (result)
+    for i in range(len(list_bddvar)):
+        cur_var = list_bddvar[i]
+        temp_value = 1
+        for j in range(len(list_next_bddvar)):
+            next_var = list_next_bddvar[j]
+            if i == j:
+                temp_value &= (next_var & boolean_network[cur_var]) | (~next_var & ~boolean_network[cur_var])
+            else:
+                temp_value &= (next_var & cur_var) | (~next_var & ~cur_var)
+        # T.append(temp_value)
+        result |= temp_value
+    
+    # print(result)
     return result
 
+def two_lists_to_dict(list_keys, list_values):
+    result = {}
+    for key in list_keys:
+        for value in list_values:
+            result[key] = value
+            list_values.remove(value)
+            break
+
+boolean_network_bdd = compute_translation_relation_1(boolean_network)
+transition_relation = compute_translation_relation_1(boolean_network)
+
+def find_reachable_state(s0, transition_relation):
+    s1 = 1
+    s0_bdd = compute_bdd(s0)
+    reach_s0 = copy.copy(s0_bdd)
+
+    while True:
+        old_s0 = copy.copy(reach_s0)
+        new_s0 = reach_s0 & transition_relation
+
+list_bddvar = list(boolean_network.keys())
+states = generate_all_states(tuple(list_bddvar))
+find_reachable_state(states[0], transition_relation)
+
+def compute_new_stg_bdd(boolean_network):
+    list_bddvar = list(boolean_network.keys())
+    states = generate_all_states(tuple(list_bddvar))
+    list_next_bddvar = [bddvar('next_' + str(cur_var)) for cur_var in list_bddvar]
+    print (states)
+    for state in states:
+        # 1. Define the initial state BDD
+        X = compute_bdd(state)
+
+        # 2. Take logical AND of X and T(Vt,Vt+1)
+        Y = X & boolean_network_bdd
+
+        # 3. Existentially quantify out variables in Vt
+        state_prime = set(boolean_network.values())
+        variables_to_remove = Y.support - state_prime
+        for variable in variables_to_remove:
+            Y = Y.restrict({variable: 0})
+            # print (Y)
+
+        res = {list_next_bddvar[i]: list_bddvar[i] for i in range(len(list_next_bddvar))}
+        Y = Y.compose(res)
+        print (Y)
+        print ("Doing")
+        # print(res)
+    print ("Doing it")
+
+compute_new_stg_bdd(boolean_network)
+
+# def compute_translation_relation(boolean_network):
+#     # stg = nx.DiGraph()
+#     # list_str = list(boolean_network.keys())
+#     list_bddvar = list(boolean_network.keys())
+#     states = generate_all_states(tuple(list_bddvar))
+#     print (states)
+
+#     result = set()
+
+#     for state in states:
+#         next_state = state.copy()
+
+#         # Create the next_state
+#         for node in boolean_network.keys():
+#             next_state[bddvar('next_' + str(node))] = next_state[node]
+#             del next_state[node]
+        
+#         # Update each next state
+#         for node, function in boolean_network.items():
+#             next_state_1 = next_state.copy()
+#             next_state_1[bddvar('next_' + str(node))] = function.restrict(state)
+#         # print (result)
+#     return result
+
 # END Computing STG -----------------------------
-compute_stg_bdd(boolean_network)
+# compute_stg_bdd(boolean_network)
 print("----++++----++++----++++----")
 # # Check the reachability
 # # -----------------------------

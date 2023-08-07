@@ -46,7 +46,6 @@ def find_retained_set(B):
     return result
 # END B -----------------------------
 
-# string_ss = "(B & C) & (A | C) & ~B"
 def compute_stg_fixed_points(boolean_network):
     total_func = bddvar('x')
     total_func = total_func.restrict({total_func:1})
@@ -103,7 +102,7 @@ print ("retained_set: " + str(retained_set))
 F = compute_stg_minus_fixed_points(boolean_network, retained_set)
 print ("F= " + str(F))
 
-# Compute State Transition Graph
+# Compute State Transition Graph using BDD
 # -----------------------------
 def compute_bdd(s):
     bddS = 1
@@ -149,40 +148,40 @@ def compute_translation_relation_1(boolean_network):
 
     return result
 
-def two_lists_to_dict(list_keys, list_values):
-    result = {}
-    for key in list_keys:
-        for value in list_values:
-            result[key] = value
-            list_values.remove(value)
-            break
+# def two_lists_to_dict(list_keys, list_values):
+#     result = {}
+#     for key in list_keys:
+#         for value in list_values:
+#             result[key] = value
+#             list_values.remove(value)
+#             break
 
 boolean_network_bdd = compute_translation_relation_1(boolean_network)
 transition_relation = compute_translation_relation_1(boolean_network)
 
-print(type(boolean_network_bdd))
+# print(type(boolean_network_bdd))
 
-def find_reachable_state(s0, transition_relation):
-    s1 = 1
-    s0_bdd = compute_bdd(s0)
-    list_next_bddvar = [bddvar('next_' + str(cur_var)) for cur_var in list(s0_bdd.inputs)]
-    print("s0_input: " + str(list_next_bddvar))
-    reach_s0 = copy.copy(s0_bdd)
+# def find_reachable_state(s0, transition_relation):
+#     s1 = 1
+#     s0_bdd = compute_bdd(s0)
+#     list_next_bddvar = [bddvar('next_' + str(cur_var)) for cur_var in list(s0_bdd.inputs)]
+#     print("s0_input: " + str(list_next_bddvar))
+#     reach_s0 = copy.copy(s0_bdd)
 
-    while True:
-        old_s0 = reach_s0
-        new_s0 = reach_s0 & transition_relation
-        print(bdd2expr(new_s0))
-        reach_s0 = list_next_bddvar | new_s0
+#     while True:
+#         old_s0 = reach_s0
+#         new_s0 = reach_s0 & transition_relation
+#         print(bdd2expr(new_s0))
+#         reach_s0 = list_next_bddvar | new_s0
 
-        print("new_s0_SAT: " + str(list(new_s0.satisfy_all())))
-        break
-        # if new_s0 == reach_s0:
-        #     s1 = new_s0
-        #     break
-    print("--------")
-    # print("s1: " + str(s1))
-    # print("s1_SAT: " + str(list(s1.satisfy_all())))
+#         print("new_s0_SAT: " + str(list(new_s0.satisfy_all())))
+#         break
+#         # if new_s0 == reach_s0:
+#         #     s1 = new_s0
+#         #     break
+#     print("--------")
+#     # print("s1: " + str(s1))
+#     # print("s1_SAT: " + str(list(s1.satisfy_all())))
 
 list_bddvar = list(boolean_network.keys())
 states = generate_all_states(tuple(list_bddvar))
@@ -192,33 +191,33 @@ for state in states:
     print(str(list(boolean_network_bdd.restrict(state).satisfy_all())))
     print("+ --- end --- +")
 
-def compute_new_stg_bdd(boolean_network):
-    list_bddvar = list(boolean_network.keys())
-    states = generate_all_states(tuple(list_bddvar))
-    list_next_bddvar = [bddvar('next_' + str(cur_var)) for cur_var in list_bddvar]
-    print (states)
-    for state in states:
-        # 1. Define the initial state BDD
-        X = compute_bdd(state)
+# def compute_new_stg_bdd(boolean_network):
+#     list_bddvar = list(boolean_network.keys())
+#     states = generate_all_states(tuple(list_bddvar))
+#     list_next_bddvar = [bddvar('next_' + str(cur_var)) for cur_var in list_bddvar]
+#     print (states)
+#     for state in states:
+#         # 1. Define the initial state BDD
+#         X = compute_bdd(state)
 
-        # 2. Take logical AND of X and T(Vt,Vt+1)
-        Y = X & boolean_network_bdd
+#         # 2. Take logical AND of X and T(Vt,Vt+1)
+#         Y = X & boolean_network_bdd
 
-        # 3. Existentially quantify out variables in Vt
-        state_prime = set(boolean_network.values())
-        variables_to_remove = Y.support - state_prime
-        for variable in variables_to_remove:
-            Y = Y.restrict({variable: 0})
-            # print (Y)
+#         # 3. Existentially quantify out variables in Vt
+#         state_prime = set(boolean_network.values())
+#         variables_to_remove = Y.support - state_prime
+#         for variable in variables_to_remove:
+#             Y = Y.restrict({variable: 0})
+#             # print (Y)
 
-        res = {list_next_bddvar[i]: list_bddvar[i] for i in range(len(list_next_bddvar))}
-        Y = Y.compose(res)
-        print (Y)
-        print ("Doing")
-        # print(res)
-    print ("Doing it")
+#         res = {list_next_bddvar[i]: list_bddvar[i] for i in range(len(list_next_bddvar))}
+#         Y = Y.compose(res)
+#         print (Y)
+#         print ("Doing")
+#         # print(res)
+#     print ("Doing it")
 
-compute_new_stg_bdd(boolean_network)
+# compute_new_stg_bdd(boolean_network)
 
 # def compute_translation_relation(boolean_network):
 #     # stg = nx.DiGraph()
@@ -246,7 +245,7 @@ compute_new_stg_bdd(boolean_network)
 
 # END Computing STG -----------------------------
 # compute_stg_bdd(boolean_network)
-print("----++++----++++----++++----")
+print("\n---- ++++ ----------------------------- ++++ ----\n")
 # # Check the reachability
 # # -----------------------------
 
@@ -280,18 +279,18 @@ def compute_next_states(boolean_network, dict_s):
 
     return list_next_states
 
-def compute_next_states_1(boolean_network, dict_s):
-    list_next_states = []
+# def compute_next_states_1(boolean_network, dict_s):
+#     list_next_states = []
 
-    for node_var_bdd, node_func_bdd in boolean_network.items():
-        print (bdd2expr(node_func_bdd).simplify())
+#     for node_var_bdd, node_func_bdd in boolean_network.items():
+#         print (bdd2expr(node_func_bdd).simplify())
 
-    return list_next_states
+#     return list_next_states
 
 def is_reachable(boolean_network, s1, s2):
     
     # list_next_state = compute_next_states(boolean_network, s1)
-    compute_next_states_1(boolean_network, s1)
+    # compute_next_states_1(boolean_network, s1)
     for node_var_bdd, node_func_bdd in boolean_network.items():
         if node_var_bdd not in s1:
             s1[node_var_bdd] = 1

@@ -131,7 +131,7 @@ def compute_translation_relation_1(boolean_network):
 
     for i in range(len(list_bddvar)):
         cur_var = list_bddvar[i]
-        temp_value = BDDONE
+        temp_value = 1
         for j in range(len(list_next_bddvar)):
             next_var = list_next_bddvar[j]
             if i == j:
@@ -139,55 +139,85 @@ def compute_translation_relation_1(boolean_network):
                 temp_value &= (next_var & boolean_network[cur_var]) | (~next_var & ~boolean_network[cur_var])
             else:
                 # /\(v'_i <=> v_i)
-                temp_value &= (next_var & cur_var) | (~next_var & ~cur_var)
-            print("\n---test i j: " + str(bdd2expr(temp_value)))
-        # next_states = list(temp_value.restrict())
-        
-        # N(V,V') = N_0 | ... | N_n-1
+                temp_value &= (list_next_bddvar[j] & list_bddvar[j]) | (~list_next_bddvar[j] & ~list_bddvar[j])
         result |= temp_value
 
     return result
 
-# def two_lists_to_dict(list_keys, list_values):
-#     result = {}
-#     for key in list_keys:
-#         for value in list_values:
-#             result[key] = value
-#             list_values.remove(value)
-#             break
-
 boolean_network_bdd = compute_translation_relation_1(boolean_network)
 transition_relation = compute_translation_relation_1(boolean_network)
 
+def transfer_state(s1):
+    s0 = {}
+    for k, v in s1.items():
+        s0[bddvar(str(k).replace('next_',''))] = v
+    return s0
+
 # print(type(boolean_network_bdd))
+def find_reachable_state(s0, s1, transition_relation):
+    s0_bdd = compute_bdd(s0)
+    s1_bdd = compute_bdd(s1)
+
+    # reach_bdd = s0_bdd
+    # while True:
+    #     old_bdd = reach_bdd
+    #     new_bdd = reach_bdd & transition_relation
+    #     reach_bdd = old_bdd & new_bdd
+    #     list_restricted_s1 = list(reach_bdd.restrict(s0).satisfy_all())
+    #     print("reach_bdd_restrict_s1: " + str(list(reach_bdd.restrict(s0).satisfy_all())))
+    #     print("old_bdd: " + str(list(old_bdd.satisfy_all())))
+    #     print("\n\treach_bdd: " + str(list(reach_bdd.satisfy_all())))
+    #     if (old_bdd == reach_bdd):
+    #         break
+    visited = {s0_bdd}
+    queue = [s0]
+    while queue:
+        curr = queue.pop(0)
+        print("considering: " + str(curr))
+        if curr == s1:
+            print ("OK: " + str(s0) + " ----> " + str(s1))
+            return True
+        next_states = list(transition_relation.restrict(curr).satisfy_all())
+        for n_state in next_states:
+            if compute_bdd(n_state) not in visited:
+                queue.append(transfer_state(n_state))
+                visited.add(compute_bdd(n_state))
+        print("--- +++ ---")
+        print(queue)
+        # break
 
 # def find_reachable_state(s0, transition_relation):
 #     s1 = 1
 #     s0_bdd = compute_bdd(s0)
 #     list_next_bddvar = [bddvar('next_' + str(cur_var)) for cur_var in list(s0_bdd.inputs)]
-#     print("s0_input: " + str(list_next_bddvar))
+#     # print("s0_input: " + str(list_next_bddvar))
 #     reach_s0 = copy.copy(s0_bdd)
 
 #     while True:
 #         old_s0 = reach_s0
 #         new_s0 = reach_s0 & transition_relation
-#         print(bdd2expr(new_s0))
-#         reach_s0 = list_next_bddvar | new_s0
+#         # print(bdd2expr(new_s0))
+#         reach_s0 = list_next_bddvar & new_s0
 
-#         print("new_s0_SAT: " + str(list(new_s0.satisfy_all())))
-#         break
-#         # if new_s0 == reach_s0:
-#         #     s1 = new_s0
-#         #     break
+#         # print("new_s0_SAT: " + str(list(reach_s0.satisfy_all())))
+#         print("new_s0_SAT: " + str(new_s0) + "\n\told_s0: " + str(old_s0))
+#         # break
+#         if new_s0 == old_s0:
+#             s1 = new_s0
+#             print("s1 = " + str(s1))
+#             break
+#     print(str(list(s1.satisfy_all())))
 #     print("--------")
-#     # print("s1: " + str(s1))
-#     # print("s1_SAT: " + str(list(s1.satisfy_all())))
+    # print("s1: " + str(s1))
+    # print("s1_SAT: " + str(list(s1.satisfy_all())))
 
 list_bddvar = list(boolean_network.keys())
 states = generate_all_states(tuple(list_bddvar))
 for state in states:
     print("+ --- check --- +")
     print(state)
+    # s_next = find_reachable_state(state, transition_relation)
+    print(str(boolean_network_bdd.restrict(state)))
     print(str(list(boolean_network_bdd.restrict(state).satisfy_all())))
     print("+ --- end --- +")
 
@@ -219,29 +249,7 @@ for state in states:
 
 # compute_new_stg_bdd(boolean_network)
 
-# def compute_translation_relation(boolean_network):
-#     # stg = nx.DiGraph()
-#     # list_str = list(boolean_network.keys())
-#     list_bddvar = list(boolean_network.keys())
-#     states = generate_all_states(tuple(list_bddvar))
-#     print (states)
 
-#     result = set()
-
-#     for state in states:
-#         next_state = state.copy()
-
-#         # Create the next_state
-#         for node in boolean_network.keys():
-#             next_state[bddvar('next_' + str(node))] = next_state[node]
-#             del next_state[node]
-        
-#         # Update each next state
-#         for node, function in boolean_network.items():
-#             next_state_1 = next_state.copy()
-#             next_state_1[bddvar('next_' + str(node))] = function.restrict(state)
-#         # print (result)
-#     return result
 
 # END Computing STG -----------------------------
 # compute_stg_bdd(boolean_network)
@@ -314,13 +322,17 @@ def is_reachable(boolean_network, s1, s2):
     return False
 
 # -----------------------------
-print("--------------")
+print("\n* --------------")
 
 print(is_reachable(boolean_network, F[1], fixed_points[0]))
+print("F[1]: " + str(F[1]))
+find_reachable_state(F[1], fixed_points[0], boolean_network_bdd)
 # print("----")
 # print(is_reachable_2(boolean_functions, F[1], fixed_points[0]))
-print("--------------")
+print("\n\n* * --------------")
 # is_reachable_2(boolean_functions, F[0], F[1])
 print(is_reachable(boolean_network, F[0], F[1]))
+find_reachable_state(F[0], F[1], boolean_network_bdd)
+
 # print("----")
 # print(is_reachable_2(boolean_functions, F[0], F[1]))

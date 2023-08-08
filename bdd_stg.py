@@ -154,62 +154,33 @@ def transfer_state(s1):
     return s0
 
 # print(type(boolean_network_bdd))
+
 def find_reachable_state(s0, s1, transition_relation):
     s0_bdd = compute_bdd(s0)
-    s1_bdd = compute_bdd(s1)
 
-    # reach_bdd = s0_bdd
-    # while True:
-    #     old_bdd = reach_bdd
-    #     new_bdd = reach_bdd & transition_relation
-    #     reach_bdd = old_bdd & new_bdd
-    #     list_restricted_s1 = list(reach_bdd.restrict(s0).satisfy_all())
-    #     print("reach_bdd_restrict_s1: " + str(list(reach_bdd.restrict(s0).satisfy_all())))
-    #     print("old_bdd: " + str(list(old_bdd.satisfy_all())))
-    #     print("\n\treach_bdd: " + str(list(reach_bdd.satisfy_all())))
-    #     if (old_bdd == reach_bdd):
-    #         break
+    # put s0 to queue and marked as visited
     visited = {s0_bdd}
     queue = [s0]
+
     while queue:
+        # pop element from the queue
         curr = queue.pop(0)
-        print("considering: " + str(curr))
+
+        # condition to check the reachability
         if curr == s1:
             print ("OK: " + str(s0) + " ----> " + str(s1))
             return True
+
+        # get next states from the transition_relation
         next_states = list(transition_relation.restrict(curr).satisfy_all())
+
         for n_state in next_states:
             if compute_bdd(n_state) not in visited:
                 queue.append(transfer_state(n_state))
                 visited.add(compute_bdd(n_state))
-        print("--- +++ ---")
-        print(queue)
-        # break
 
-# def find_reachable_state(s0, transition_relation):
-#     s1 = 1
-#     s0_bdd = compute_bdd(s0)
-#     list_next_bddvar = [bddvar('next_' + str(cur_var)) for cur_var in list(s0_bdd.inputs)]
-#     # print("s0_input: " + str(list_next_bddvar))
-#     reach_s0 = copy.copy(s0_bdd)
+    return False
 
-#     while True:
-#         old_s0 = reach_s0
-#         new_s0 = reach_s0 & transition_relation
-#         # print(bdd2expr(new_s0))
-#         reach_s0 = list_next_bddvar & new_s0
-
-#         # print("new_s0_SAT: " + str(list(reach_s0.satisfy_all())))
-#         print("new_s0_SAT: " + str(new_s0) + "\n\told_s0: " + str(old_s0))
-#         # break
-#         if new_s0 == old_s0:
-#             s1 = new_s0
-#             print("s1 = " + str(s1))
-#             break
-#     print(str(list(s1.satisfy_all())))
-#     print("--------")
-    # print("s1: " + str(s1))
-    # print("s1_SAT: " + str(list(s1.satisfy_all())))
 
 list_bddvar = list(boolean_network.keys())
 states = generate_all_states(tuple(list_bddvar))
@@ -220,35 +191,6 @@ for state in states:
     print(str(boolean_network_bdd.restrict(state)))
     print(str(list(boolean_network_bdd.restrict(state).satisfy_all())))
     print("+ --- end --- +")
-
-# def compute_new_stg_bdd(boolean_network):
-#     list_bddvar = list(boolean_network.keys())
-#     states = generate_all_states(tuple(list_bddvar))
-#     list_next_bddvar = [bddvar('next_' + str(cur_var)) for cur_var in list_bddvar]
-#     print (states)
-#     for state in states:
-#         # 1. Define the initial state BDD
-#         X = compute_bdd(state)
-
-#         # 2. Take logical AND of X and T(Vt,Vt+1)
-#         Y = X & boolean_network_bdd
-
-#         # 3. Existentially quantify out variables in Vt
-#         state_prime = set(boolean_network.values())
-#         variables_to_remove = Y.support - state_prime
-#         for variable in variables_to_remove:
-#             Y = Y.restrict({variable: 0})
-#             # print (Y)
-
-#         res = {list_next_bddvar[i]: list_bddvar[i] for i in range(len(list_next_bddvar))}
-#         Y = Y.compose(res)
-#         print (Y)
-#         print ("Doing")
-#         # print(res)
-#     print ("Doing it")
-
-# compute_new_stg_bdd(boolean_network)
-
 
 
 # END Computing STG -----------------------------
